@@ -1,0 +1,10 @@
+diy
+lex.yy.c
+lib/libutil.a
+lib/main.o
+lib/node.o
+lib/tabid.o
+y.output
+y.tab.c
+y.tab.h
+yyselect.c
