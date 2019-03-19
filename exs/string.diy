@@ -1,0 +1,18 @@
+== O módulo será designado string.diy (e não String.diy, STRING.DIY, STRING.diy ou outra variante que a imaginação considere mais apropriada) e deverá conter os equivalentes em diy das rotinas de C: strcmp, strcpy e strchr. (Como não existem carateres individuais na linguagem, o segundo argumento da rotina strchr é um integer) A rotina strcmp deverá ser utilizada pelo compilador final para a comparação de cadeias de carateres.
+
+
+integer strcmp (string s1, string s2) {
+    integer i := 0;
+    if s1[i] <> "\0" & s1[i] = s2[i] then {
+        do {
+            i := i + 1
+        } while s1[i] <> "\0" & s1[i] = s2[i];  
+    };
+    strcmp := s1[i] = s2[i] 
+
+};
+
+
+
+
+
