@@ -9,7 +9,7 @@ void yyerror(char *s);
 
 %}
 
-%x M_COM
+%x M_COM STR_BLOCK
 %%
 <M_COM>"=<"     yy_push_state(M_COM);
 <M_COM>"=>"     yy_pop_state();
@@ -45,7 +45,13 @@ void yyerror(char *s);
 ":="            return ASSIGN;
 
 
+\"(\\\"|[^"])*\"        printf("dsad\n");yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
+\"                      BEGIN STR_BLOCK;
+<STR_BLOCK>[^\\]\"          BEGIN 0; return STR;
+<STR_BLOCK>\\[0-9A-Fa-f]{2} strcat(yylval.s,"\\x"); strcat(yylval.s,yytext+1); 
+<STR_BLOCK>\0|\\0           yyerror("Invalid escape sequence in string");
 
+<STR_BLOCK>.|\n             strcat(yylval.s, yytext);
 
 
 
