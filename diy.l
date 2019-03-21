@@ -45,16 +45,19 @@ void yyerror(char *s);
 ":="            return ASSIGN;
 
 
-\"(\\\"|[^"])*\"        printf("dsad\n");yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
+\"((\\.)|[^\\"])*\"        printf("start :%d\n",yyleng);yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
 \"                      BEGIN STR_BLOCK;
 
 
 
 <STR_BLOCK>\\\"        strcat(yylval.s,yytext+1);
-<STR_BLOCK>\"          BEGIN 0; return STR;
+<STR_BLOCK>\"          BEGIN 0; printf("STRING:%s\n",yylval.s); return STR;
 
+
+<STR_BLOCK>\\[nrt]          strcat(yylval.s, yytext);
 <STR_BLOCK>\0|\\0|\\00      yyerror("Invalid escape sequence in string");
 <STR_BLOCK>\\([0-9A-Fa-f]{2}|[0-9A-Fa-f]) printf("%s",yytext); 
+<STR_BLOCK>\\.              yyerror("Invalid escape sequence in string");
 <STR_BLOCK>.|\n             strcat(yylval.s, yytext);
 
 
@@ -66,6 +69,7 @@ void yyerror(char *s);
 [ \n\r\t]+      ;
 .			yyerror("Unknown character");
 \n ;//yylineno flex increment
+\0 printf("bye");
 %%
 int yywrap(void) { return 1; }
 char *getyytext() { return yytext; }
