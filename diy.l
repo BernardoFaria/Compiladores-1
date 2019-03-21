@@ -47,15 +47,23 @@ void yyerror(char *s);
 
 \"(\\\"|[^"])*\"        printf("dsad\n");yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
 \"                      BEGIN STR_BLOCK;
-<STR_BLOCK>[^\\]\"          BEGIN 0; return STR;
-<STR_BLOCK>\\[0-9A-Fa-f]{2} strcat(yylval.s,"\\x"); strcat(yylval.s,yytext+1); 
-<STR_BLOCK>\0|\\0           yyerror("Invalid escape sequence in string");
 
+
+
+<STR_BLOCK>\\\"        strcat(yylval.s,yytext+1);
+<STR_BLOCK>\"          BEGIN 0; return STR;
+
+<STR_BLOCK>\0|\\0|\\00      yyerror("Invalid escape sequence in string");
+<STR_BLOCK>\\([0-9A-Fa-f]{2}|[0-9A-Fa-f]) printf("%s",yytext); 
 <STR_BLOCK>.|\n             strcat(yylval.s, yytext);
 
 
 
 [0-9]+			yylval.i = strtol(yytext, 0, 10); return INT;
+
+
+[-+*/%!&|~<>();,\[\]{}#] return *yytext;
+[ \n\r\t]+      ;
 .			yyerror("Unknown character");
 \n ;//yylineno flex increment
 %%
