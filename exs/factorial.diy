@@ -1,0 +1,21 @@
+public void prints(string s)
+public void printi(integer i)
+public void println()
+public integer atoi(string s)
+
+public integer factorial(integer n)
+
+public integer entry (integer argc, string *argv, string *envp) {
+    integer n := 5;
+
+    if argc > 1 then {
+        n = atoi(argv[1])
+    };
+
+    printi(n)
+    prints("! = ")
+    printi(factorial(n))
+    println()
+
+    entry := 0
+};

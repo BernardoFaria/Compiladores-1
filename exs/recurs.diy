@@ -1,0 +1,4 @@
+integer factorial(integer n){
+    if n < 3 then factorial := n
+    else factorial := (n * factorial(n - 1))
+};
