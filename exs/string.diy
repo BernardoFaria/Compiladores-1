@@ -8,7 +8,7 @@ integer strcmp (const string s1, const string s2) {
     do {
         i := i + 1
     } while s1[i] <> 0 & s1[i] = s2[i];  
-    strcmp := s1[i] - s2[i] 
+    strcmp := s1[i] - s2[i];
 };
 
 string strcpy (string dest, const string source) {
@@ -16,12 +16,12 @@ string strcpy (string dest, const string source) {
     integer i := 0;
     if source[i] <> 0 then {
         do {
-            dest[i] := source[i]
+            dest[i] := source[i];
             i := i + 1
         } while source[i] <> 0;
     };
     dest[i] := 0
-    strcpy := dest
+    strcpy := dest;
 };
 
 string strchr (const string s, integer c){
@@ -29,12 +29,12 @@ string strchr (const string s, integer c){
     if s[i] <> 0 then {
         do{
             if s[i] = c then {
-                break
+                break;
             } else {
                 i := i + 1
             };
         } while s[i] <> 0;
     };
-    strchr := &s[i]
+    strchr := &s[i];
 };
 

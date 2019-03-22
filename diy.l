@@ -10,7 +10,9 @@ char *dupstr(const char *s);
 int diyinteger(char *s,int base);
 int f(int token); //funcao para processar insercao ;
 
-#define DEBUG_MODE 1
+#ifndef DEBUG_MODE
+#define DEBUG_MODE 0 
+#endif
 
 #if DEBUG_MODE
 # define DEBUG(x) printf x
@@ -86,7 +88,8 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return f(INT);
 
 {REAL}              {errno=0;yylval.r = strtod(yytext,NULL);
-                    if (errno == ERANGE) yyerror("number overflow");printf("%lf\n",yylval.r);return f(REAL);}
+                    if (errno == ERANGE) yyerror("number overflow");
+                    DEBUG(("Real: %lf\n",yylval.r));return f(REAL);}
 
 
 {S_SYMBOLS} return f(*yytext);
