@@ -45,9 +45,11 @@ void yyerror(char *s);
 ":="            return ASSIGN;
 
 
+
+[a-zA-Z_\b][a-zA-Z_\b0-9]* yylval.s = dupstr(yytext); return NAME;
+
 \"((\\.)|[^\\"])*\"        printf("start :%d\n",yyleng);yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
 \"                      BEGIN STR_BLOCK;
-
 
 
 <STR_BLOCK>\\\"        strcat(yylval.s,yytext+1);
@@ -62,7 +64,10 @@ void yyerror(char *s);
 
 
 
-[0-9]+			yylval.i = strtol(yytext, 0, 10); return INT;
+[1-9][0-9]*			yylval.i = diyinteger(yytext,10); return INT;
+0[0-9]*             yylval.i = diyinteger(yytext,8); return INT;
+0b[0-1]+            yylval.i = diyinteger(yytext,2); return INT;
+
 
 
 [-+*/%!&|~<>();,\[\]{}#] return *yytext;
@@ -71,5 +76,24 @@ void yyerror(char *s);
 \n ;//yylineno flex increment
 \0 printf("bye");
 %%
-int yywrap(void) { return 1; }
-char *getyytext() { return yytext; }
+int yywrap(void) {
+    if (YYSTATE == M_COM) yyerror("unterminated comment");
+    if (YYSTATE == STR_BLOCK) yyerror("unterminated string");
+    return 1; 
+}
+
+int diyinteger(char *s,int base)
+{
+  int i, a = 0, b = 0;
+
+  for (i = 0; i < strlen(s); i++) {
+    if (s[i] < '0' || s[i] > '9') break;
+    b = b * base + s[i] - '0';
+    if (b < a) {
+      yyerror("integer overflow");
+      break;
+    }
+    a = b;
+  }
+  return a;
+}

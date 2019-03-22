@@ -21,7 +21,7 @@ extern int yylineno;
 };
 
 %token <i> INT
-%token <s> STR
+%token <s> NAME STR
 %token <r> REAL
 
 
