@@ -12,6 +12,8 @@ int diyinteger(char *s,int base);
 int f(int token);
 %}
 REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
+S_SYMBOLS [-+*/%!&|~<>();,\[\]{}#]
+STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 %x M_COM STR_BLOCK
 %%
 <M_COM>"=<"     yy_push_state(M_COM);
@@ -61,7 +63,7 @@ REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 
 <STR_BLOCK>\\[nrt]          strcat(yylval.s, yytext);
 <STR_BLOCK>\0|\\0|\\00      yyerror("Invalid escape sequence in string");
-<STR_BLOCK>\\([0-9A-Fa-f]{2}|[0-9A-Fa-f]) printf("%s",yytext); 
+<STR_BLOCK>{STR_HEX}        printf("%s",yytext); 
 <STR_BLOCK>\\.              yyerror("Invalid escape sequence in string");
 <STR_BLOCK>.|\n             strcat(yylval.s, yytext);
 
@@ -75,8 +77,8 @@ REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
                     if (errno == ERANGE) yyerror("Real overflow");printf("%lf\n",yylval.r);return f(REAL);}
 
 
-[-+*/%!&|~<>();,\[\]{}#] return f(*yytext);
-[ \r\t]+      ;
+{S_SYMBOLS} return f(*yytext);
+[ \r\t]+    ;
 
 .			yyerror("Unknown character");
 \n          {int token = f(*yytext); if(token !='\n') return token;}
