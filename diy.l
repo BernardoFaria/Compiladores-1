@@ -6,7 +6,8 @@
 #include "node.h"
 #include "y.tab.h"
 void yyerror(char *s);
-
+char *dupstr(const char *s);
+int diyinteger(char *s,int base);
 %}
 
 %x M_COM STR_BLOCK
@@ -82,8 +83,7 @@ int yywrap(void) {
     return 1; 
 }
 
-int diyinteger(char *s,int base)
-{
+int diyinteger(char *s,int base){
   int i, a = 0, b = 0;
 
   for (i = 0; i < strlen(s); i++) {
