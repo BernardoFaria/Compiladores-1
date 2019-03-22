@@ -9,7 +9,7 @@ void yyerror(char *s);
 char *dupstr(const char *s);
 int diyinteger(char *s,int base);
 %}
-
+REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 %x M_COM STR_BLOCK
 %%
 <M_COM>"=<"     yy_push_state(M_COM);
@@ -69,13 +69,14 @@ int diyinteger(char *s,int base);
 0[0-9]*             yylval.i = diyinteger(yytext,8); return INT;
 0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return INT;
 
+{REAL}              {errno=0;yylval.r = strtod(yytext,NULL);
+                    if (errno == ERANGE) yyerror("Real overflow");printf("%lf\n",yylval.r);return REAL;}
 
 
 [-+*/%!&|~<>();,\[\]{}#] return *yytext;
 [ \n\r\t]+      ;
 .			yyerror("Unknown character");
 \n ;//yylineno flex increment
-\0 printf("bye");
 %%
 int yywrap(void) {
     if (YYSTATE == M_COM) yyerror("unterminated comment");
