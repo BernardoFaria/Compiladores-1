@@ -67,7 +67,7 @@ int diyinteger(char *s,int base);
 
 [1-9][0-9]*			yylval.i = diyinteger(yytext,10); return INT;
 0[0-9]*             yylval.i = diyinteger(yytext,8); return INT;
-0b[0-1]+            yylval.i = diyinteger(yytext,2); return INT;
+0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return INT;
 
 
 
@@ -95,5 +95,6 @@ int diyinteger(char *s,int base){
     }
     a = b;
   }
+  printf("%d",a);
   return a;
 }
