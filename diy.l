@@ -8,6 +8,8 @@
 void yyerror(char *s);
 char *dupstr(const char *s);
 int diyinteger(char *s,int base);
+
+int f(int token);
 %}
 REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 %x M_COM STR_BLOCK
@@ -18,43 +20,43 @@ REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 
 "==".*          ;//Comment
 "=<"            yy_push_state(M_COM);                 
-"for"			return FOR;
-"void"          return VOID;
-"integer"       return INTEGER;
-"string"        return STRING;
-"public"        return PUBLIC;
-"number"        return NUMBER;
-"const"         return CONST;
-"if"            return IF;
-"then"          return THEN;
-"else"          return ELSE;
-"while"         return WHILE;
-"do"            return DO;
-"in"            return IN;
-"step"          return STEP;
-"upto"          return UPTO;
-"downto"        return DOWNTO;
-"break"         return BREAK;
-"continue"      return CONTINUE;
+"for"			      return f(FOR);
+"void"          return f(VOID);
+"integer"       return f(INTEGER);
+"string"        return f(STRING);
+"public"        return f(PUBLIC);
+"number"        return f(NUMBER);
+"const"         return f(CONST);
+"if"            return f(IF);
+"then"          return f(THEN);
+"else"          return f(ELSE);
+"while"         return f(WHILE);
+"do"            return f(DO);
+"in"            return f(IN);
+"step"          return f(STEP);
+"upto"          return f(UPTO);
+"downto"        return f(DOWNTO);
+"break"         return f(BREAK);
+"continue"      return f(CONTINUE);
 
-"++"            return INC;
-"--"            return DEC;
-"<="            return LE;
-">="            return GE;
-"="             return EQ;
-"<>"            return NE;
-":="            return ASSIGN;
+"++"            return f(INC);
+"--"            return f(DEC);
+"<="            return f(LE);
+">="            return f(GE);
+"="             return f(EQ);
+"<>"            return f(NE);
+":="            return f(ASSIGN);
 
 
 
-[a-zA-Z_\b][a-zA-Z_\b0-9]* yylval.s = dupstr(yytext); return NAME;
+[a-zA-Z_\b][a-zA-Z_\b0-9]* yylval.s = dupstr(yytext); return f(NAME);
 
 \"((\\.)|[^\\"])*\"        printf("start :%d\n",yyleng);yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
 \"                      BEGIN STR_BLOCK;
 
 
 <STR_BLOCK>\\\"        strcat(yylval.s,yytext+1);
-<STR_BLOCK>\"          BEGIN 0; printf("STRING:%s\n",yylval.s); return STR;
+<STR_BLOCK>\"          BEGIN 0; printf("STRING:%s\n",yylval.s); return f(STR);
 
 
 <STR_BLOCK>\\[nrt]          strcat(yylval.s, yytext);
@@ -65,18 +67,19 @@ REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 
 
 
-[1-9][0-9]*			yylval.i = diyinteger(yytext,10); return INT;
-0[0-9]*             yylval.i = diyinteger(yytext,8); return INT;
-0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return INT;
+[1-9][0-9]*			yylval.i = diyinteger(yytext,10); return f(INT);
+0[0-9]*             yylval.i = diyinteger(yytext,8); return f(INT);
+0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return f(INT);
 
 {REAL}              {errno=0;yylval.r = strtod(yytext,NULL);
-                    if (errno == ERANGE) yyerror("Real overflow");printf("%lf\n",yylval.r);return REAL;}
+                    if (errno == ERANGE) yyerror("Real overflow");printf("%lf\n",yylval.r);return f(REAL);}
 
 
-[-+*/%!&|~<>();,\[\]{}#] return *yytext;
-[ \n\r\t]+      ;
+[-+*/%!&|~<>();,\[\]{}#] return f(*yytext);
+[ \r\t]+      ;
+
 .			yyerror("Unknown character");
-\n ;//yylineno flex increment
+\n          {int token = f(*yytext); if(token !='\n') return token;}
 %%
 int yywrap(void) {
     if (YYSTATE == M_COM) yyerror("unterminated comment");
@@ -98,4 +101,23 @@ int diyinteger(char *s,int base){
   }
   printf("%d",a);
   return a;
+}
+
+int insert=0;
+
+int f(int token){
+    if(insert && token == '\n'){
+        unput('\n');
+        insert = 0;
+        return ';';
+    }else{
+        if(token==NAME || token==')' || token=='!' || token==REAL ||
+            token==INT || token==STR){
+            insert=1;
+        }else{
+            insert=0;
+        }
+
+        return token;
+    }
 }
