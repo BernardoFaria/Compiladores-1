@@ -9,6 +9,14 @@ void yyerror(char *s);
 char *dupstr(const char *s);
 int diyinteger(char *s,int base);
 int f(int token); //funcao para processar insercao ;
+
+#define DEBUG_MODE 1
+
+#if DEBUG_MODE
+# define DEBUG(x) printf x
+#else
+# define DEBUG(x) 
+#endif
 %}
 
 REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
@@ -59,8 +67,7 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 
 
 <STR_BLOCK>\\\"             strcat(yylval.s,yytext+1);
-<STR_BLOCK>\"               BEGIN 0; printf("STRING:%s\n",yylval.s); return f(STR);
-
+<STR_BLOCK>\"               DEBUG(("string %s\n",yylval.s)); BEGIN 0; return f(STR); 
 
 <STR_BLOCK>\\n              strcat(yylval.s, "\n");
 <STR_BLOCK>\\r              strcat(yylval.s, "\r");
@@ -79,7 +86,7 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return f(INT);
 
 {REAL}              {errno=0;yylval.r = strtod(yytext,NULL);
-                    if (errno == ERANGE) yyerror("Real overflow");printf("%lf\n",yylval.r);return f(REAL);}
+                    if (errno == ERANGE) yyerror("number overflow");printf("%lf\n",yylval.r);return f(REAL);}
 
 
 {S_SYMBOLS} return f(*yytext);
@@ -89,7 +96,7 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 \n          {int token = f(*yytext); if(token !='\n') return token;}
 %%
 int yywrap(void) {
-    if (YYSTATE == M_COM) yyerror("unterminated comment");
+    if (YYSTATE == M_COM) yyerror("unterminated multi-line comment");
     if (YYSTATE == STR_BLOCK) yyerror("unterminated string");
     return 1; 
 }
@@ -106,7 +113,7 @@ int diyinteger(char *s,int base){
     }
     a = b;
   }
-  printf("%d",a);
+  DEBUG(("int:%d\n",a));
   return a;
 }
 
