@@ -8,13 +8,14 @@
 void yyerror(char *s);
 char *dupstr(const char *s);
 int diyinteger(char *s,int base);
-
-int f(int token);
+int f(int token); //funcao para processar insercao ;
 %}
+
 REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
 S_SYMBOLS [-+*/%!&|~<>();,\[\]{}#]
 STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 %x M_COM STR_BLOCK
+
 %%
 <M_COM>"=<"     yy_push_state(M_COM);
 <M_COM>"=>"     yy_pop_state();
@@ -22,7 +23,7 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 
 "==".*          ;//Comment
 "=<"            yy_push_state(M_COM);                 
-"for"			      return f(FOR);
+"for"           return f(FOR);
 "void"          return f(VOID);
 "integer"       return f(INTEGER);
 "string"        return f(STRING);
@@ -51,19 +52,23 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 
 
 
-[a-zA-Z_\b][a-zA-Z_\b0-9]* yylval.s = dupstr(yytext); return f(NAME);
+[a-zA-Z_\b][a-zA-Z_\b0-9]*  yylval.s = dupstr(yytext); return f(NAME);
 
-\"((\\.)|[^\\"])*\"        printf("start :%d\n",yyleng);yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
-\"                      BEGIN STR_BLOCK;
-
-
-<STR_BLOCK>\\\"        strcat(yylval.s,yytext+1);
-<STR_BLOCK>\"          BEGIN 0; printf("STRING:%s\n",yylval.s); return f(STR);
+\"((\\.)|[^\\"])*\"         yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
+\"                          BEGIN STR_BLOCK;
 
 
-<STR_BLOCK>\\[nrt]          strcat(yylval.s, yytext);
+<STR_BLOCK>\\\"             strcat(yylval.s,yytext+1);
+<STR_BLOCK>\"               BEGIN 0; printf("STRING:%s\n",yylval.s); return f(STR);
+
+
+<STR_BLOCK>\\n              strcat(yylval.s, "\n");
+<STR_BLOCK>\\r              strcat(yylval.s, "\r");
+<STR_BLOCK>\\t              strcat(yylval.s, "\t");
+
 <STR_BLOCK>\0|\\0|\\00      yyerror("Invalid escape sequence in string");
-<STR_BLOCK>{STR_HEX}        printf("%s",yytext); 
+<STR_BLOCK>{STR_HEX}        sprintf(yylval.s + strlen(yylval.s),"%c",(int)strtol(yytext+1,0,16)); 
+
 <STR_BLOCK>\\.              yyerror("Invalid escape sequence in string");
 <STR_BLOCK>.|\n             strcat(yylval.s, yytext);
 
@@ -119,7 +124,6 @@ int f(int token){
         }else{
             insert=0;
         }
-
         return token;
     }
 }
