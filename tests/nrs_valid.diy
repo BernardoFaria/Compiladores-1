@@ -1,6 +1,6 @@
 integer a := 2147483647
 integer c := 0
-integer b := 019000000000
+integer b := 015000000000
 integer bin := 0b01000000000000000000000000000000
 number r := 1.
 number r1 := 0.01

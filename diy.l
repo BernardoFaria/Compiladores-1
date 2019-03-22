@@ -30,6 +30,7 @@ STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
 <M_COM>"=<"     yy_push_state(M_COM);
 <M_COM>"=>"     yy_pop_state();
 <M_COM>.        ;
+<M_COM>\n       ;
 
 "==".*          ;//Comment
 "=<"            yy_push_state(M_COM);                 
