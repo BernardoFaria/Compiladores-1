@@ -1,13 +1,8 @@
-integer factorial(integer n){
-    integer f := 1;
-    integer i := n;
-
-    if i > 0 then {
-        do {
-            f := f * i
-            i := i - 1
-        } while i > 0;
-    };
-    
-    factorial := f
+== Computacao de factoriais de forma iterativa
+public number factorial(integer n) {
+    factorial := 1
+    if n > 0 then
+        do
+            factorial := factorial * n
+        while --n > 1
 };

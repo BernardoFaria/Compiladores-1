@@ -1,140 +1,92 @@
-%option yylineno stack
 %{
+/* $Id: diy.l,v 1.0 2019/02/15 11:13:32 prs Exp $ */
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "node.h"
 #include "y.tab.h"
+static int eoi; /* end of instruction */
+static int ncom; /* comment nesting level */
+static int in; /* in string */
 void yyerror(char *s);
-char *dupstr(const char *s);
-int diyinteger(char *s,int base);
-int f(int token); //funcao para processar insercao ;
-
-#ifndef DEBUG_MODE
-#define DEBUG_MODE 0 
-#endif
-
-#if DEBUG_MODE
-# define DEBUG(x) printf x
-#else
-# define DEBUG(x) 
-#endif
+int octal(char *s);
 %}
-
-REAL [0-9]*\.?[0-9]*([eE][-+]?[0-9]+)?
-S_SYMBOLS [-+*/%!&|~<>();,\[\]{}#]
-STR_HEX \\([0-9A-Fa-f]{2}|[0-9A-Fa-f])
-%x M_COM STR_BLOCK
-
+%x COM CHR
+FLT	[0-9]+\.[0-9]+([Ee][+-]?[0-9]+)?
 %%
-<M_COM>"=<"     yy_push_state(M_COM);
-<M_COM>"=>"     yy_pop_state();
-<M_COM>.        ;
-<M_COM>\n       ;
+"==".*                  ;
+"=<"			ncom = 1; BEGIN COM;
+<COM>.|\n		;
+<COM>\"([^"\\]|\\.)*\"	;
+<COM>"=<"		ncom++;
+<COM>"=>"		if (--ncom == 0) BEGIN 0;
 
-"==".*          ;//Comment
-"=<"            yy_push_state(M_COM);                 
-"for"           return f(FOR);
-"void"          return f(VOID);
-"integer"       return f(INTEGER);
-"string"        return f(STRING);
-"public"        return f(PUBLIC);
-"number"        return f(NUMBER);
-"const"         return f(CONST);
-"if"            return f(IF);
-"then"          return f(THEN);
-"else"          return f(ELSE);
-"while"         return f(WHILE);
-"do"            return f(DO);
-"in"            return f(IN);
-"step"          return f(STEP);
-"upto"          return f(UPTO);
-"downto"        return f(DOWNTO);
-"break"         return f(BREAK);
-"continue"      return f(CONTINUE);
+">="			eoi = 0; return GE;
+"<="			eoi = 0; return LE;
+"<>"			eoi = 0; return NE;
+":="			eoi = 0; return ATR;
+"++"			eoi = 0; return INCR;
+"--"			eoi = 0; return DECR;
+"if"			eoi = 0; return IF;
+"then"			eoi = 0; return THEN;
+"else"			eoi = 0; return ELSE;
+"while"			eoi = 0; return WHILE;
+"do"			eoi = 0; return DO;
+"for"			eoi = 0; return FOR;
+"in"			eoi = 0; return IN;
+"upto"			eoi = 0; return UPTO;
+"downto"		eoi = 0; return DOWNTO;
+"step"			eoi = 0; return STEP;
+"void"			eoi = 0; return VOID;
+"integer"		eoi = 0; return INTEGER;
+"string"		eoi = 0; return STRING;
+"number"		eoi = 0; return NUMBER;
+"public"		eoi = 0; return PUBLIC;
+"const"			eoi = 0; return CONST;
+"break"			eoi = 0; return BREAK;
+"continue"		eoi = 0; return CONTINUE;
 
-"++"            return f(INC);
-"--"            return f(DEC);
-"<="            return f(LE);
-">="            return f(GE);
-"="             return f(EQ);
-"<>"            return f(NE);
-":="            return f(ASSIGN);
+[A-Za-z][A-Za-z0-9_]*	eoi = 1; yylval.s = strdup(yytext); return ID;
+\"([^"\\]|\\(.|\n))*\"	eoi = 1; yylval.s = malloc(yyleng); *yylval.s = 0; in = 1; REJECT;
+\"			if (in) BEGIN CHR; else { yyerror("unterminated string"); return 0; }
+<CHR>\"			eoi = 1; BEGIN 0; return STR;
+<CHR>\\\"		strcat(yylval.s, "\"");
+<CHR>\\n		strcat(yylval.s, "\n");
+<CHR>\\r		strcat(yylval.s, "\n");
+<CHR>\\t		strcat(yylval.s, "\n");
+<CHR>\\[0-9a-fA-F][0-9a-fA-F]?	{ char s[2]; s[1] = 0; s[0] = strtol(yytext+1,0,16); strcat(yylval.s, s); }
+<CHR>\\.		yyerror("invalid escape sequence in string");
+<CHR>[^"]		strcat(yylval.s, yytext);
+0[0-9]+			eoi = 1; yylval.i = octal(yytext); return INT;
+[0-9]+			eoi = 1; errno = 0; yylval.i = strtol(yytext, 0, 10); if (errno == ERANGE) yyerror("overflow in decimal constant"); return INT;
+0b[01]+			eoi = 1; errno = 0; yylval.i = strtol(yytext+2, 0, 2); if (errno == ERANGE) yyerror("overflow in binary constant"); return INT;
+{FLT}			eoi = 1; yylval.r = strtod(yytext, 0); return REAL;
+[-<>+*/%=|&!;#{},\[\](]	eoi = 0; return *yytext;
+[)!]			eoi = 1; return *yytext;
 
-
-
-[a-zA-Z_\b][a-zA-Z_\b0-9]*  yylval.s = dupstr(yytext); return f(NAME);
-
-\"((\\.)|[^\\"])*\"         yylval.s = malloc(yyleng); *yylval.s = 0; REJECT;
-\"                          BEGIN STR_BLOCK;
-
-
-<STR_BLOCK>\\\"             strcat(yylval.s,yytext+1);
-<STR_BLOCK>\"               DEBUG(("string %s\n",yylval.s)); BEGIN 0; return f(STR); 
-
-<STR_BLOCK>\\n              strcat(yylval.s, "\n");
-<STR_BLOCK>\\r              strcat(yylval.s, "\r");
-<STR_BLOCK>\\t              strcat(yylval.s, "\t");
-
-<STR_BLOCK>\0|\\0|\\00      yyerror("Invalid escape sequence in string");
-<STR_BLOCK>{STR_HEX}        sprintf(yylval.s + strlen(yylval.s),"%c",(int)strtol(yytext+1,0,16)); 
-
-<STR_BLOCK>\\.              yyerror("Invalid escape sequence in string");
-<STR_BLOCK>.|\n             strcat(yylval.s, yytext);
-
-
-
-[1-9][0-9]*			yylval.i = diyinteger(yytext,10); return f(INT);
-0[0-9]*             yylval.i = diyinteger(yytext,8); return f(INT);
-0b[0-1]+            yylval.i = diyinteger(yytext+2,2); return f(INT);
-
-{REAL}              {errno=0;yylval.r = strtod(yytext,NULL);
-                    if (errno == ERANGE) yyerror("number overflow");
-                    DEBUG(("Real: %lf\n",yylval.r));return f(REAL);}
-
-
-{S_SYMBOLS} return f(*yytext);
-[ \r\t]+    ;
+[ \t\r]+		; /* ignore whitespace */
+[\n]+			if (eoi == 1) { eoi = 0; return ';'; }
 
 .			yyerror("Unknown character");
-\n          {int token = f(*yytext); if(token !='\n') return token;}
 %%
 int yywrap(void) {
-    if (YYSTATE == M_COM) yyerror("unterminated multi-line comment");
-    if (YYSTATE == STR_BLOCK) yyerror("unterminated string");
-    return 1; 
+  if (YYSTATE == COM) yyerror("unterminated comment");
+  return 1;
 }
 
-int diyinteger(char *s,int base){
+int octal(char *s)
+{
   int i, a = 0, b = 0;
 
   for (i = 0; i < strlen(s); i++) {
     if (s[i] < '0' || s[i] > '9') break;
-    b = b * base + s[i] - '0';
+    b = b * 8 + s[i] - '0';
     if (b < a) {
-      yyerror("integer overflow");
+      yyerror("octal overflow");
       break;
     }
     a = b;
   }
-  DEBUG(("int:%d\n",a));
   return a;
 }
 
-int insert=0;
-
-int f(int token){
-    if(insert && token == '\n'){
-        unput('\n');
-        insert = 0;
-        return ';';
-    }else{
-        if(token==NAME || token==')' || token=='!' || token==REAL ||
-            token==INT || token==STR){
-            insert=1;
-        }else{
-            insert=0;
-        }
-        return token;
-    }
-}
+char *getyytext() { return yytext; }

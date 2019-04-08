@@ -1,40 +1,34 @@
-== O módulo será designado string.diy (e não String.diy, STRING.DIY, STRING.diy ou outra variante que a imaginação considere mais apropriada) e deverá conter os equivalentes em diy das rotinas de C: strcmp, strcpy e strchr. (Como não existem carateres individuais na linguagem, o segundo argumento da rotina strchr é um integer) A rotina strcmp deverá ser utilizada pelo compilador final para a comparação de cadeias de carateres.
+public integer strcmp(string a, string b) {
+  integer i
+  i := 0
+  if a[i] <> 0 & b[i] <> 0 & a[i] = b[i] then
+    do
+      ++i
+    while a[i] <> 0 & b[i] <> 0 & a[i] = b[i];
+  strcmp := b[i] - a[i];
+};
 
-
-
-
-integer strcmp (const string s1, const string s2) {
-    integer i := -1;
+public string strcpy(string a, string b) {
+  integer i
+  i := 0
+  strcpy := a
+  if b <> 0 & *b <> 0 then
     do {
-        i := i + 1
-    } while s1[i] <> 0 & s1[i] = s2[i];  
-    strcmp := s1[i] - s2[i];
+      a[i] := b[i];
+      i++;
+    } while b[i] <> 0
+  a[i] := 0
 };
 
-string strcpy (string dest, const string source) {
-    == assume que o dest suporta o conteudo de source
-    integer i := 0;
-    if source[i] <> 0 then {
-        do {
-            dest[i] := source[i];
-            i := i + 1
-        } while source[i] <> 0;
-    };
-    dest[i] := 0
-    strcpy := dest;
+public string strchr(string a, integer b) {
+  integer i
+  i := 0
+  strchr := 0
+  if *a <> 0 then
+    do
+      if a[i] = b then {
+        strchr := &a[i];
+        break;
+      } else ++i
+    while a[i] <> 0
 };
-
-string strchr (const string s, integer c){
-    integer i := 0;
-    if s[i] <> 0 then {
-        do{
-            if s[i] = c then {
-                break;
-            } else {
-                i := i + 1
-            };
-        } while s[i] <> 0;
-    };
-    strchr := &s[i];
-};
-

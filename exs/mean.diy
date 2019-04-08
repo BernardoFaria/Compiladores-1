@@ -1,31 +1,25 @@
 public void prints(string s)
-public void printr(real r)
+public void printd(number d)
 public void println()
-public integer atoi(string s)
+public integer readi()
 
+public void srand(integer s)
 public integer rand()
 
 public integer entry (integer argc, string *argv, string *envp) {
-    integer i := 0;
-    integer n := 0;
-    ==assumes automatic promotion to real on sum and division with int
-    real r := 0.0; 
+  integer cnt
+  integer i
+  number sum
 
-    if argc > 1 then {
-        n := atoi(argv[1])
-        i := n
-    };
-    
-    if n <> 0 then {
-        do {
-            r := r + rand()
-            n := n - 1
-        } while n <> 0;
-    
-    printr(r / n)
-    println()
-
-    };
-    
-    entry := 0 
+  prints("Número de valores pseudo-aleatórios a gerar: ")
+  cnt := readi()
+  i := 0
+  sum := 0
+  if cnt > 0 then
+    do
+      sum := sum + rand()
+    while ++i < cnt
+  printd(sum / cnt)
+  println()
+  entry := 0
 };
