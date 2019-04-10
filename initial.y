@@ -20,6 +20,8 @@ int yyerror(char *s);
 %token VOID INTEGER STRING NUMBER CONST PUBLIC INCR DECR
 %token ATR NE GE LE ELSE
 
+
+%token UMINUS ADDR
 %%
 file: decls {printf("test");}
     ;
@@ -54,12 +56,45 @@ init: ATR INT
     | ATR REAL
     | ATR ID
     | '(' ')' op_body
-    | '(' args ')' op_body
+    | '(' parametros ')' op_body
     ;
 
+op_body:
+       | body
+       ;
 
-inst:
+body:'{' body_param body_inst '}'
+    ;
 
+body_param: parametro ';' body_param
+          |
+          ;
+
+body_inst: instrucao body_inst
+         |
+         ;
+
+
+instrucao: BREAK ';'
+         | BREAK INTEGER ';'
+         | CONTINUE ';'
+         | CONTINUE INTEGER ';'
+         | body
+         | expressao ';'
+         | IF expressao THEN instrucao %prec SIMPLE_IF
+         | IF expressao THEN instrucao ELSE instrucao
+         | DO instrucao WHILE expressao ';'
+         | left_value '#' expressao ';'
+         | FOR left_value IN expressao algo_to expressao op_step DO instrucao
+         ;
+
+algo_to: UPTO
+       | DOWNTO
+       ;
+
+op_step: 
+       | STEP expressao
+       ;
 
 expressao: ID
          | '(' expressao ')'
@@ -91,6 +126,7 @@ expressao: ID
          | expressao ATR expressao
          
          | left_value ATR expressao
+         ;
 
 
 left_value: ID
@@ -98,14 +134,15 @@ left_value: ID
           | left_value '[' expressao ']'
           ;
 
+parametros: parametro, parametros
+          | parametro
+          ;
+
 
 parametro: tipo ID
          | tipo '*' ID
          ;
 
-body: '{}'
-    |needs an empty
-    ;
 
 
 %%
