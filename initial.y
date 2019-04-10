@@ -86,11 +86,11 @@ op_body:
 body:'{' body_param body_inst '}'
     ;
 
-body_param: parametro ';' body_param
+body_param: body_param parametro ';' 
           |
           ;
 
-body_inst: instrucao body_inst
+body_inst: body_inst instrucao 
          |
          ;
 
