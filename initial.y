@@ -17,11 +17,24 @@ int yyerror(char *s);
 %token <r> REAL
 %token <s> ID STR
 %token DO WHILE IF THEN FOR IN UPTO DOWNTO STEP BREAK CONTINUE
-%token VOID INTEGER STRING NUMBER CONST PUBLIC INCR DECR
-%token ATR NE GE LE ELSE
+%token VOID INTEGER STRING NUMBER CONST PUBLIC 
+
+%nonassoc '[' '('
+
+%nonassoc INCR DECR '!'
+
+%left '*' '/' '%'
+%left '+' '-'
+
+%left '<' '>' GE LE
+%left '=' NE
+%nonassoc '~' 
+%right ATR
+
+%left '&' '|'
+%nonassoc ELSE UMINUS ADDR SIMPLE_IF 
 
 
-%token UMINUS ADDR
 %%
 file: decls {printf("test");}
     ;
@@ -97,6 +110,9 @@ op_step:
        ;
 
 expressao: ID
+         | INT
+         | REAL
+
          | '(' expressao ')'
          
          | '-' expressao %prec UMINUS
