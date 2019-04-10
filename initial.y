@@ -6,6 +6,8 @@
 #include "tabid.h"
 extern int yylex();
 int yyerror(char *s);
+
+int yydebug = 1;
 %}
 %union {
 	int i;			/* integer value */
@@ -28,10 +30,10 @@ int yyerror(char *s);
 
 %left '<' '>' GE LE
 %left '=' NE
-%nonassoc '~' 
+%nonassoc '~'
+%left '&' '|'
 %right ATR
 
-%left '&' '|'
 %nonassoc ELSE UMINUS ADDR SIMPLE_IF 
 
 
@@ -152,7 +154,7 @@ left_value: ID
           | left_value '[' expressao ']'
           ;
 
-parametros: parametro, parametros
+parametros: parametro ',' parametros
           | parametro
           ;
 
@@ -170,7 +172,8 @@ char **yynames =
 #else
          0;
 #endif
-
+int yyerror(char *s) { printf("%s\n", s); return 0; }
+int main() { return yyparse(); }
 /*
 int yyerror(char *s) { printf("%s\n",s); return 1; }
 char *dupstr(const char*s) { return strdup(s); }
