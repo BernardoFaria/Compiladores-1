@@ -122,6 +122,9 @@ expressao: left_value
          | STR
 
          | '(' expressao ')'
+
+         | expressao '(' f_args ')'
+         | expressao '(' ')'
          
          | '-' expressao %prec UMINUS
          | '!' expressao
@@ -151,13 +154,16 @@ expressao: left_value
          | left_value ATR expressao 
          ;
 
+f_args: f_args ',' expressao
+      | expressao
+      ;
 
 left_value: ID
           | '*' left_value
           | left_value '[' expressao ']'
           ;
 
-parametros: parametro ',' parametros
+parametros: parametros ',' parametro
           | parametro
           ;
 
