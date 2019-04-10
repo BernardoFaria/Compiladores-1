@@ -64,9 +64,11 @@ tipo: NUMBER
     ;
 
 init: ATR INT
+    | ATR '-' INT
     | ATR CONST STR
     | ATR STR
     | ATR REAL
+    | ATR '-' REAL
     | ATR ID
     | '(' ')' op_body
     | '(' parametros ')' op_body
