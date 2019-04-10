@@ -21,21 +21,24 @@ int yydebug = 1;
 %token DO WHILE IF THEN FOR IN UPTO DOWNTO STEP BREAK CONTINUE
 %token VOID INTEGER STRING NUMBER CONST PUBLIC 
 
-%nonassoc '[' '('
+%nonassoc SIMPLE_IF
+%nonassoc ELSE 
 
-%nonassoc INCR DECR '!'
 
-%left '*' '/' '%'
-%left '+' '-'
+
+%right ATR
+%left '&' '|'
+%nonassoc '~'
+%left '=' NE
 
 %left '<' '>' GE LE
-%left '=' NE
-%nonassoc '~'
-%left '&' '|'
-%right ATR
+%left '+' '-'
 
-%nonassoc ELSE UMINUS ADDR SIMPLE_IF 
+%left '*' '/' '%'
 
+
+%nonassoc INCR DECR ADDR UMINUS '!'
+%nonassoc '[' '('
 
 %%
 file: decls {printf("test");}
