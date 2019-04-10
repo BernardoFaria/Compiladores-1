@@ -109,9 +109,10 @@ op_step:
        | STEP expressao
        ;
 
-expressao: ID
+expressao: left_value
          | INT
          | REAL
+         | STR
 
          | '(' expressao ')'
          
@@ -136,12 +137,11 @@ expressao: ID
          | expressao GE expressao
          | expressao LE expressao
          
-         | expressao '~' expressao
+         | '~' expressao
          | expressao '&' expressao
          | expressao '|' expressao
-         | expressao ATR expressao
          
-         | left_value ATR expressao
+         | left_value ATR expressao 
          ;
 
 
@@ -162,6 +162,13 @@ parametro: tipo ID
 
 
 %%
+char **yynames =
+#if YYDEBUG > 0
+         (char**)yyname;
+#else
+         0;
+#endif
+
 /*
 int yyerror(char *s) { printf("%s\n",s); return 1; }
 char *dupstr(const char*s) { return strdup(s); }
