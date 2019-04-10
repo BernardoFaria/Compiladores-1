@@ -13,7 +13,7 @@ int yydebug = 1;
 	int i;			/* integer value */
 	double r;		/* real value */
 	char *s;		/* symbol name or string literal */
-    Node *n;
+    Node *n;        /* tree node */
 };
 %token <i> INT
 %token <r> REAL
@@ -40,29 +40,33 @@ int yydebug = 1;
 %nonassoc INCR DECR ADDR UMINUS '!'
 %nonassoc '[' '('
 
+%type<n> decls decl decl_const decl_param tipo init body instrucao algo_to op_step left_value parametro
+
+%token NIL DECL_PARAM
+
 %%
-file: decls {printf("test");}
+file: decls {printNode($1,0,yynames);}
     ;
 
-decls: decls decl
-     |
+decls: decls decl   {$$ = binNode(decls,$1,$2);}
+     |              {$$ = nilNode(NIL)}
      ;
 
 
-decl: PUBLIC decl_const 
-    | decl_const
+decl: PUBLIC decl_const {$$ = uniNode(PUBLIC,$2);}
+    | decl_const        {$$ = $1;}
     ;
 
-decl_const: CONST decl_param 
-          | decl_param
+decl_const: CONST decl_param    {$$ = uniNode(CONST,$2);}
+          | decl_param         
           ;
 
-decl_param: parametro ';'
-          | parametro init ';'
+decl_param: parametro ';'       {$$ = binNode(DECL_PARAM,$1,nilNode(NIL));}
+          | parametro init ';'  {$$ = binNode(DECL_PARAM,$1,$2);}
           ;
 
 
-tipo: NUMBER
+tipo: NUMBER 
     | STRING
     | INTEGER
     | VOID
@@ -117,9 +121,9 @@ op_step:
        ;
 
 expressao: left_value
-         | INT
-         | REAL
-         | STR
+         | INT  {$$ = intNode(INT,$1);}
+         | REAL {$$ = realNode(REAL,$1);}
+         | STR  {$$ = strNode(STR,$1);}
 
          | '(' expressao ')'
 
