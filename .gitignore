@@ -12,3 +12,5 @@ yyselect.c
 TODO
 
 \.vscode/
+
+out\.asm

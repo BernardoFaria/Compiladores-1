@@ -7,7 +7,6 @@
 extern int yylex();
 int yyerror(char *s);
 
-int yydebug = 1;
 %}
 %union {
 	int i;			/* integer value */
@@ -43,8 +42,9 @@ int yydebug = 1;
 %type<n> decls decl decl_const decl_param tipo init body instrucao algo_to_expr op_step left_value 
 %type<n> parametro op_body parametros body_inst body_param expressao f_args 
 
-%token NIL DECL_PARAM ALLOC PARAMS PARAM LOAD INDEX BODY BODY_PARAMS BODY_INSTS DECLS
-%token G_ATR FUNC IF ELSE DO WHILE FOR_IN_EXPR FOR_PARAMS FOR_TO_STEP
+%token NIL DECL_PARAM ALLOC PARAMS PARAM LOAD INDEX BODY BODY_PARAMS BODY_INSTS DECLS F_ARGS
+%token G_ATR FUNC IF ELSE DO WHILE FOR_IN_EXPR FOR_PARAMS FOR_TO_STEP CALL 
+%token FATORIAL NOT OR AND MUL DIV MOD ADD SUBARU LT GT EQ
 
 /*
 1 - int
@@ -77,7 +77,7 @@ decl: PUBLIC decl_const {$$ = uniNode(PUBLIC,$2);}
     ;
 
 decl_const: CONST decl_param    {$$ = uniNode(CONST,$2);}
-          | decl_param         
+          | decl_param          {$$ = $1;}
           ;
 
 decl_param: parametro ';'       {$$ = binNode(DECL_PARAM,$1,nilNode(NIL));}
@@ -93,7 +93,7 @@ tipo: NUMBER        {$$ = nilNode(NUMBER);}
 
 init: ATR INT               { $$ = uniNode(G_ATR, intNode(INT,$2)); }
     | ATR '-' INT           { $$ = uniNode(G_ATR, intNode(INT,-$3)); }
-    | ATR CONST STR
+    | ATR CONST STR     
     | ATR STR                { $$ = uniNode(G_ATR, strNode(STR,$2)); }
     | ATR REAL               { $$ = uniNode(G_ATR, realNode(REAL,$2)); }
     | ATR '-' REAL           { $$ = uniNode(G_ATR, realNode(REAL,-$3)); }
@@ -122,8 +122,8 @@ instrucao: BREAK ';'                            {$$ = uniNode(BREAK,nilNode(NIL)
          | BREAK INT ';'                    {$$ = uniNode(BREAK,intNode(INT,$2));}
          | CONTINUE ';'                     {$$ = uniNode(CONTINUE,nilNode(NIL));}
          | CONTINUE INT ';'                 {$$ = uniNode(CONTINUE,intNode(INT,$2));}
-         | body                             {$$=$1}
-         | expressao ';'                    {$$=$1}
+         | body                             {$$=$1;}
+         | expressao ';'                    {$$=$1;}
          | IF expressao THEN instrucao %prec SIMPLE_IF      {$$=binNode(IF,$2,$4);}
          | IF expressao THEN instrucao ELSE instrucao       {$$=binNode(ELSE,binNode(IF,$2,$4),$6);}
          | DO instrucao WHILE expressao ';'                 {$$=binNode(DO,$2,uniNode(WHILE,$4));}
@@ -141,46 +141,46 @@ op_step:                    {$$ = nilNode(NIL);}
        | STEP expressao     {$$ = uniNode(STEP,$2);}
        ;
 
-expressao: left_value                       
+expressao: left_value                           
          | INT  {$$ = intNode(INT,$1);}
          | REAL {$$ = realNode(REAL,$1);}
          | STR  {$$ = strNode(STR,$1);}
 
          | '(' expressao ')'                { $$ = $2; }
 
-         | expressao '(' f_args ')'
-         | expressao '(' ')'
+         | expressao '(' f_args ')'         { $$ = binNode(CALL,$1,$3); }
+         | expressao '(' ')'                { $$ = binNode(CALL,$1,nilNode(NIL));}
          
-         | '-' expressao %prec UMINUS
-         | '!' expressao
-         | '&' left_value %prec ADDR
-         | INCR left_value
-         | DECR left_value
-         | left_value INCR
-         | left_value DECR
+         | '-' expressao %prec UMINUS       {$$ = uniNode(UMINUS,$2);}
+         | expressao '!'                    {$$ = uniNode(FATORIAL,$1);}
+         | '&' left_value %prec ADDR        {$$ = uniNode(ADDR,$2);}
+         | INCR left_value                  {$$ = uniNode(INCR,$2);}
+         | DECR left_value                  {$$ = uniNode(DECR,$2);}
+         | left_value INCR                  {$$ = uniNode(INCR,$1);}
+         | left_value DECR                  {$$ = uniNode(DECR,$1);}
          
-         | expressao '*' expressao
-         | expressao '/' expressao
-         | expressao '%' expressao
-         | expressao '+' expressao
-         | expressao '-' expressao
+         | expressao '*' expressao          { $$ = binNode(MUL, $1, $3); }
+         | expressao '/' expressao          { $$ = binNode(DIV, $1, $3); }
+         | expressao '%' expressao          { $$ = binNode(MOD, $1, $3); }
+         | expressao '+' expressao          { $$ = binNode(ADD, $1, $3); }  
+         | expressao '-' expressao          { $$ = binNode(SUBARU, $1, $3); }
          
-         | expressao '<' expressao
-         | expressao '>' expressao
-         | expressao NE expressao
-         | expressao '=' expressao
-         | expressao GE expressao
-         | expressao LE expressao
+         | expressao '<' expressao          { $$ = binNode(LT, $1, $3); }
+         | expressao '>' expressao          { $$ = binNode(GT, $1, $3); }
+         | expressao NE expressao           { $$ = binNode(NE, $1, $3); }
+         | expressao '=' expressao          { $$ = binNode(EQ, $1, $3); }
+         | expressao GE expressao           { $$ = binNode(GE, $1, $3); }
+         | expressao LE expressao           { $$ = binNode(LE, $1, $3); }
          
-         | '~' expressao
-         | expressao '&' expressao
-         | expressao '|' expressao
+         | '~' expressao                    {$$ = uniNode(NOT,$2);}
+         | expressao '&' expressao          { $$ = binNode(AND, $1, $3); }
+         | expressao '|' expressao          { $$ = binNode(OR, $1, $3); }
          
          | left_value ATR expressao { $$ = binNode(ATR, $3, $1); }
          ;
 
-f_args: f_args ',' expressao
-      | expressao
+f_args: f_args ',' expressao                {$$=binNode(F_ARGS,$3,$1);}
+      | expressao                           {$$=binNode(F_ARGS,$1,nilNode(NIL));}
       ;
 
 left_value: ID                              {$$=strNode(ID,$1);}
