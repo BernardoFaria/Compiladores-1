@@ -7,6 +7,8 @@
 extern int yylex();
 int yyerror(char *s);
 
+
+// int IDdebug =1;
 %}
 %union {
 	int i;			/* integer value */
@@ -50,63 +52,71 @@ int yyerror(char *s);
 1 - int
 2- real
 3- str
+
+1111
+
 4- ptr
 
 8- void
 */
 %{
-
 #define INT_T 1
 #define REAL_T 2
 #define STR_T 3
-#define PTR_T 4
-#define VOID_T 8
+#define VOID_T 4
+
+#define PTR_T 8
+#define CONST_T 16
+#define PUBLIC_T 32
+#define FUNC_T 64
+
+
 %} 
 
 %%
 file: decls {printNode($1,0,yynames);}
     ;
 
-decls: decls decl   {$$ = binNode(DECLS,$1,$2);}
+decls: decls decl   {$$ = binNode(DECLS,$1,$2);     IDnew($2->info,$2->value.s,0);printf("ADD, type:%d value: %s\n",$2->info,$2->value.s);}
      |              {$$ = nilNode(NIL);}
      ;
 
 
-decl: PUBLIC decl_const {$$ = uniNode(PUBLIC,$2);}
-    | decl_const        {$$ = $1;}
+decl: PUBLIC decl_const {$$ = uniNode(PUBLIC,$2); $$->info=$2->info + PUBLIC_T;$$->value.s=$2->value.s;}
+    | decl_const        {$$ = $1;   $$->info=$1->info;$$->value.s=$1->value.s;}
     ;
 
-decl_const: CONST decl_param    {$$ = uniNode(CONST,$2);}
-          | decl_param          {$$ = $1;}
+decl_const: CONST decl_param    {$$ = uniNode(CONST,$2);    $$->info=$2->info + CONST_T;$$->value.s=$2->value.s;}
+          | decl_param          {$$ = $1; $$->info=$1->info;$$->value.s=$1->value.s;}
           ;
 
-decl_param: parametro ';'       {$$ = binNode(DECL_PARAM,$1,nilNode(NIL));}
-          | parametro init ';'  {$$ = binNode(DECL_PARAM,$1,$2);}
+decl_param: parametro ';'       {$$ = binNode(DECL_PARAM,$1,nilNode(NIL)); $$->info=$1->info; $$->value.s=$1->value.s;}
+          | parametro init ';'  {$$ = binNode(DECL_PARAM,$1,$2);/*FIXME VERIF INIT*/ $$->info=$1->info; $$->value.s=$1->value.s;}
           ;
 
 
-tipo: NUMBER        {$$ = nilNode(NUMBER);}
-    | STRING        {$$ = nilNode(STRING);}
-    | INTEGER       {$$ = nilNode(INTEGER);}
-    | VOID          {$$ = nilNode(VOID);}
+tipo: NUMBER        {$$ = nilNode(NUMBER); $$->info=REAL_T;}
+    | STRING        {$$ = nilNode(STRING); $$->info=STR_T;}
+    | INTEGER       {$$ = nilNode(INTEGER); $$->info=INT_T;}
+    | VOID          {$$ = nilNode(VOID); $$->info=VOID_T;}
     ;
 
 init: ATR INT               { $$ = uniNode(G_ATR, intNode(INT,$2)); }
     | ATR '-' INT           { $$ = uniNode(G_ATR, intNode(INT,-$3)); }
-    | ATR CONST STR     
+    | ATR CONST STR         { $$ = uniNode(G_ATR, strNode(STR,$3)); }
     | ATR STR                { $$ = uniNode(G_ATR, strNode(STR,$2)); }
     | ATR REAL               { $$ = uniNode(G_ATR, realNode(REAL,$2)); }
     | ATR '-' REAL           { $$ = uniNode(G_ATR, realNode(REAL,-$3)); }
     | ATR ID                 { $$ = uniNode(G_ATR, strNode(ID,$2)); }
     | '(' ')' op_body               {$$ = binNode(FUNC,nilNode(NIL),$3);}
-    | '(' parametros ')' op_body    {$$ = binNode(FUNC,$2,$4);}
+    | '(' { IDpush(); } parametros ')' op_body    {$$ = binNode(FUNC,$3,$5);IDpop();}
     ;
 
 op_body:                    {$$ = nilNode(NIL);}
        | body               {$$ = $1;}
        ;
 
-body:'{' body_param body_inst '}'   {$$=binNode(BODY,$2,$3);}
+body:'{' { IDpush(); } body_param body_inst '}'   {$$=binNode(BODY,$3,$4);IDpop();}
     ;
 
 body_param: body_param parametro ';' {$$=binNode(BODY_PARAMS,$1,$2);}
@@ -131,7 +141,6 @@ instrucao: BREAK ';'                            {$$ = uniNode(BREAK,nilNode(NIL)
          | FOR left_value IN expressao algo_to_expr op_step DO instrucao   {$$=binNode(FOR,binNode(FOR_PARAMS,binNode(FOR_IN_EXPR,$2,$4),binNode(FOR_TO_STEP,$5,$6)),$8);}
          ;
 
-//FIXFROMHERE
 
 algo_to_expr: UPTO expressao               {$$ = nilNode(UPTO);}
        | DOWNTO expressao             {$$ = nilNode(DOWNTO);}
@@ -193,8 +202,8 @@ parametros: parametros ',' parametro    {$$=binNode(PARAMS,$3,$1);}
           ;
 
 
-parametro: tipo ID          {$$ = binNode(PARAM,$1,strNode(ID,$2));}
-         | tipo '*' ID      {$$ = binNode(PARAM,$1,uniNode(LOAD,strNode(ID,$3)));}
+parametro: tipo ID          {$$ = binNode(PARAM,$1,strNode(ID,$2));     $$->info=$1->info; $$->value.s=$$->CHILD(1)->value.s;}
+         | tipo '*' ID      {$$ = binNode(PARAM,$1,uniNode(LOAD,strNode(ID,$3)));   $$->info=$1->info; $$->value.s=$$->CHILD(1)->value.s;}
          ;
 
 
