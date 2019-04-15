@@ -9,6 +9,8 @@ int yyerror(char *s);
 
 
 int IDdebug =1;
+char* name;
+char* decl_name;
 %}
 %union {
 	int i;			/* integer value */
@@ -72,6 +74,7 @@ int IDdebug =1;
 #define EL_CONST_T 128;
 
 #define checkBit(mask,flag) (mask & flag) == flag
+#define getInfoBasic(x) (x & 3)
 %} 
 
 %%
@@ -91,8 +94,17 @@ const: CONST     {$$ = nilNode(CONST); $$->info=CONST_T;}
     |            {$$ = nilNode(NIL); $$->info=0;}
     ;
 
-decl: public const parametro ';'       {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,nilNode(NIL))); $$->info = $1->info+$2->info+$3->info; printf("info%d\n",$$->info);if(checkBit($$->info, CONST_T))yyerror("Sintax error: Const declaration without value\n");}
-    | public const parametro init ';'  {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,$4));}
+decl: public const parametro ';'       {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,nilNode(NIL))); 
+        $$->info = $1->info | $2->info | $3->info; if(IDfind(name,0)!=-1) IDreplace($$->info,name,0); else printf("ERROR in replace type");
+        if(checkBit($$->info, CONST_T))yyerror("Const declaration without assigned value\n");}
+    | public const parametro {decl_name=name;} init ';'  {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,$5)); 
+        if(getInfoBasic($3->info) == getInfoBasic($5->info) || checkBit($5->info,FUNC_T)){
+            $$->info = $1->info | $2->info | $3->info | $5->info;
+            if(IDfind(decl_name,0)!=-1){
+                IDreplace($$->info,decl_name,0);
+            }
+
+        }else yyerror("Cannot assign different type values on declaration\n");}
     ;
 
 
@@ -108,9 +120,9 @@ init: ATR INT               { $$ = uniNode(G_ATR, intNode(INT,$2));     $$->info
     | ATR STR                { $$ = uniNode(G_ATR, strNode(STR,$2));    $$->info=STR_T;}
     | ATR REAL               { $$ = uniNode(G_ATR, realNode(REAL,$2));  $$->info=REAL_T;}
     | ATR '-' REAL           { $$ = uniNode(G_ATR, realNode(REAL,-$3)); $$->info=REAL_T;}
-    | ATR ID                 { $$ = uniNode(G_ATR, strNode(ID,$2)); /*IDFIND FIXME*/}
-    | '(' ')' op_body               {$$ = binNode(FUNC,nilNode(NIL),$3);}
-    | '(' { IDpush(); } parametros ')' op_body    {$$ = binNode(FUNC,$3,$5);IDpop();}
+    | ATR ID                 { $$ = uniNode(G_ATR, strNode(ID,$2)); int tipo = IDfind($2,0); if(tipo==-1)yyerror("ID is not defined"); $$->info=tipo;}
+    | '(' ')' op_body               {$$ = binNode(FUNC,nilNode(NIL),$3);    $$->info=FUNC_T;}
+    | '(' { IDpush(); } parametros ')' op_body    {$$ = binNode(FUNC,$3,$5);IDpop(); $$->info=FUNC_T;}
     ;
 
 op_body:                    {$$ = nilNode(NIL);}
@@ -204,9 +216,9 @@ parametros: parametros ',' parametro    {$$=binNode(PARAMS,$3,$1);}
 
 
 parametro: tipo ID          {$$ = binNode(PARAM,$1,strNode(ID,$2)); 
-            $$->info = $1->info; IDnew($$->info,$$->CHILD(1)->value.s,0);  }
+            $$->info = $1->info; IDnew($$->info,$$->CHILD(1)->value.s,0);  name=$$->CHILD(1)->value.s;}
          | tipo '*' ID      {$$ = binNode(PARAM,$1,uniNode(LOAD,strNode(ID,$3))); 
-            $$->info = $1->info+PTR_T; IDnew($$->info,$$->CHILD(1)->CHILD(0)->value.s,0); }
+            $$->info = $1->info+PTR_T; IDnew($$->info,$$->CHILD(1)->CHILD(0)->value.s,0); name=$$->CHILD(1)->CHILD(0)->value.s; }
          ;
 
 
