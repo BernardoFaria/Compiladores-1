@@ -71,7 +71,7 @@ int IDdebug =1;
 #define FUNC_T 64
 #define EL_CONST_T 128;
 
-
+#define checkBit(mask,flag) (mask & flag) == flag
 %} 
 
 %%
@@ -83,15 +83,15 @@ decls: decls decl   {$$ = binNode(DECLS,$1,$2);   }
      ;
 
 
-public: PUBLIC  {$$ = nilNode(PUBLIC);}
-    |         {$$ = nilNode(NIL);  }
+public: PUBLIC  {$$ = nilNode(PUBLIC); $$->info=PUBLIC_T;}
+    |         {$$ = nilNode(NIL);  $$->info=0;}
     ;
 
-const: CONST     {$$ = nilNode(CONST); }
-    |            {$$ = nilNode(NIL); }
+const: CONST     {$$ = nilNode(CONST); $$->info=CONST_T;}
+    |            {$$ = nilNode(NIL); $$->info=0;}
     ;
 
-decl: public const parametro ';'       {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,nilNode(NIL))) ; }
+decl: public const parametro ';'       {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,nilNode(NIL))); $$->info = $1->info+$2->info+$3->info; printf("info%d\n",$$->info);if(checkBit($$->info, CONST_T))yyerror("Sintax error: Const declaration without value\n");}
     | public const parametro init ';'  {$$ = binNode(DECL,binNode(DECL_OP,$1,$2),binNode(DECL_PARAM,$3,$4));}
     ;
 
@@ -204,9 +204,9 @@ parametros: parametros ',' parametro    {$$=binNode(PARAMS,$3,$1);}
 
 
 parametro: tipo ID          {$$ = binNode(PARAM,$1,strNode(ID,$2)); 
-            $$->info = $$->CHILD(1)->info; IDnew($$->info,$$->CHILD(1)->value.s,0);  }
+            $$->info = $1->info; IDnew($$->info,$$->CHILD(1)->value.s,0);  }
          | tipo '*' ID      {$$ = binNode(PARAM,$1,uniNode(LOAD,strNode(ID,$3))); 
-            $$->info = $$->CHILD(1)->CHILD(0)->info+PTR_T; IDnew($$->info,$$->CHILD(1)->CHILD(0)->value.s,0); }
+            $$->info = $1->info+PTR_T; IDnew($$->info,$$->CHILD(1)->CHILD(0)->value.s,0); }
          ;
 
 
