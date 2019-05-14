@@ -27,6 +27,8 @@ struct typeNode {
     int   info;			/* specific info such as type or register used */
     void (*listen)(Node*);	/* listener */
     long  place;		/* location information */
+    int ptr_level;   /*Nr of ptr level*/
+    
     union {
       regint i;			/* value of literal integer */ 
       double r;			/* value of literal real number */ 

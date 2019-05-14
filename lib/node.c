@@ -31,6 +31,7 @@ Node *newNode(NodeType t, int attrib, unsigned nops) {
     p->info = -1;
     p->listen = 0;
     p->place = -1;
+    p->ptr_level=0;
     p->value.sub.num = nops;
     if (nops > 0) {
 	for (i = 0; i < nops; i++)
