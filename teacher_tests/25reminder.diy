@@ -1,0 +1,9 @@
+public void printi(integer n)
+public void println()
+integer x := 5
+integer y := 2
+public integer entry (integer argc, string *argv, string *envp) {
+  printi(x%y);
+  println()
+  entry := 0
+};

@@ -1,0 +1,3 @@
+public integer entry (integer argc, string *argv, string *envp) {
+  entry := entry(envp, argc-1, argv)
+};

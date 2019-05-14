@@ -1,0 +1,6 @@
+public void prints(string s)
+== argument shadows return name
+public integer entry (integer entries, string *argv, string *envp) {
+  entry := 0
+  prints("olé touro!\n")
+};

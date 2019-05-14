@@ -1,0 +1,31 @@
+Each number (06 to 29) is 2 points (out of 60)
+To gain each 2 points, the OK tests must pass and the error test must fail.
+If both pass or both fail, the test is invalid, no points awarded.
+06doze.diy	: OK
+06error.diy	: 3 errors (1 error is no recovery)
+08negdecl.diy	: OK (error is no negative)
+08pi.diy	: OK
+10cont.diy	: OK
+10continue.diy	: continue not last in block
+21constinit.diy	: local const not inited
+21init.diy	: OK
+22break.diy	: OK
+22brk.diy	: too many levels of continue
+23assign.diy	: OK
+23constassign.diy	: lvalue is constant
+23constdecr.diy	: lvalue is constant
+23decr.diy	: OK
+24ints.diy	: OK
+24strings.diy	: can not add strings
+25remain.diy	: reminder only between integers
+25reminder.diy	: OK
+26fact.diy	: ! arg is integer (return is number)
+26factorial.diy	: OK
+27argorder.diy	: arguments out of order
+27args.diy	: OK
+27noarg.diy	: missing argument
+28decl.diy	: OK
+28dupdecl.diy	: function argument shadows return value
+29forward.diy	: OK
+29fwd.diy	: OK
+29nofwd.diy	: function redeclaration

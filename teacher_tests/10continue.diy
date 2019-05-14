@@ -1,0 +1,11 @@
+public void printi(integer n)
+public void println()
+public integer entry (integer argc, string *argv, string *envp) {
+  do {
+    printi(argc)
+    continue;
+    argc := argc - 1
+    println()
+  } while argc > 1
+  entry := 0
+};

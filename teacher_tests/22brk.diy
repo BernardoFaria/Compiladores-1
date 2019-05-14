@@ -1,0 +1,7 @@
+public integer entry (integer argc, string *argv, string *envp) {
+  do {
+    argc := argc - 1
+    continue 2;
+  } while argc > 1
+  entry := 0
+};
