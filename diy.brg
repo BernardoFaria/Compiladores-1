@@ -10,12 +10,12 @@
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 %}
-%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' ASSIGN='=' OR='|' AND='&' INDEX='['
+%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=','
 %include "y.tab.h"
 %%
 
 
-stmt:	END	1	{	}
+stmt:	VOID 1	{	}
 
 
 
@@ -27,9 +27,8 @@ tipo: NUMBER 1 {}
 
 init: ID 1 {}
 
+params: PARAMS(params,param)  1 {}
 
-
-decls:
 decls: END(decls,param)
 
 param: PARAM(tipo,ID)
@@ -45,10 +44,10 @@ do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl); fprintf(outfp, pfJ
 begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
 
 %! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
-expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
-expr:   DEC(CTE, lval)  1 { fprintf(outfp, pfDUP pfDECR pfLOAD, LEFT_CHILD(p)->value.i); }
-expr:   INC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, RIGHT_CHILD(p)->value.i); }
-expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
+%!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
+%!expr:   DEC(CTE, lval)  1 { fprintf(outfp, pfDUP pfDECR pfLOAD, LEFT_CHILD(p)->value.i); }
+%!expr:   INC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, RIGHT_CHILD(p)->value.i); }
+%!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
 expr:   ADD(expr,expr)  1 { fprintf(outfp, pfADD); }
@@ -56,8 +55,6 @@ expr:   SUB(expr,expr)  1 { fprintf(outfp, pfSUB); }
 expr:   MUL(expr,expr)  1 { fprintf(outfp, pfMUL); }
 expr:   DIV(expr,expr)  1 { fprintf(outfp, pfDIV); }
 expr:   MOD(expr,expr)  1 { fprintf(outfp, pfMOD); }
-expr:   LSH(expr,expr)  1 { fprintf(outfp, pfSHTL); }
-expr:   RSH(expr,expr)  1 { fprintf(outfp, pfSHTRS); }
 expr:   EQ(expr,expr)   1 { fprintf(outfp, pfEQ); }
 expr:   NE(expr,expr)   1 { fprintf(outfp, pfNE); }
 expr:   LT(expr,expr)   1 { fprintf(outfp, pfLT); }
