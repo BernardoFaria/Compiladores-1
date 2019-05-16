@@ -11,11 +11,22 @@
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 %}
 %term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=','
+%term FINIT='(' BLOCO='{'
 %include "y.tab.h"
 %%
 
 
-stmt:	VOID 1	{	}
+finit: FINIT(blocop, params)
+finit: FINIT(blocop, NIL)
+
+blocop: NIL
+blocop: bloco
+
+%! FIX THIS THE IF SOMEHOW
+bloco: BLOCO(,decls)
+bloco: BLOCO(decls)
+
+%!stmt:	VOID 1	{	}
 
 
 
