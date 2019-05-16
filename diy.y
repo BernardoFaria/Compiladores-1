@@ -7,7 +7,8 @@
 #include "node.h"
 #include "tabid.h"
 
-extern int yylex();
+extern int yylex(),yyselect();
+extern int trace;
 void yyerror(char *s);
 void declare(int pub, int cnst, Node *type, char *name, Node *value);
 void enter(int pub, int typ, char *name);
@@ -305,5 +306,7 @@ void function(int pub, Node *type, char *name, Node *body)
 		int fwd = IDfind(name, &par);
 		if (fwd > 40) yyerror("duplicate function");
 		else IDreplace(fwd+40, name, par);
+        if(trace) printNode(body,0,yynames);
+        yyselect(body);
 	}
 }

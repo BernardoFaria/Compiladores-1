@@ -6,8 +6,11 @@
 #include "node.h"
 #include "tabid.h"
 #include "postfix.h"
+
+#define TRACE
+static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 %}
-%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' ASSIGN='=' BOR='|' BAND='&'
+%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' ASSIGN='=' OR='|' AND='&' INDEX='['
 %include "y.tab.h"
 %%
 
@@ -17,12 +20,12 @@ stmt:	END	1	{	}
 
 
 
+%! fix this
+tipo: INTEGER 1 {}
+tipo: STRING 1 {}
+tipo: NUMBER 1 {}
 
-tipo: INTEGER(1+ptr) 
-tipo: STRING(2+ptr)
-tipo: NUMBER(3+ptr)
-
-init: ID
+init: ID 1 {}
 
 
 
@@ -32,9 +35,20 @@ decls: END(decls,param)
 param: PARAM(tipo,ID)
 
 
-base: VOID()
-base: WHILE(DO(START(),stmt),expr)
-base
+base: VOID
+
+
+
+%! while alterado para o nosso codigo Verificar postfix VERIFY
+base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
+do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl); fprintf(outfp, pfJZ, mklbl(lbl)); }
+begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
+
+%! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
+expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
+expr:   DEC(CTE, lval)  1 { fprintf(outfp, pfDUP pfDECR pfLOAD, LEFT_CHILD(p)->value.i); }
+expr:   INC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, RIGHT_CHILD(p)->value.i); }
+expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
 expr:   ADD(expr,expr)  1 { fprintf(outfp, pfADD); }
@@ -42,8 +56,6 @@ expr:   SUB(expr,expr)  1 { fprintf(outfp, pfSUB); }
 expr:   MUL(expr,expr)  1 { fprintf(outfp, pfMUL); }
 expr:   DIV(expr,expr)  1 { fprintf(outfp, pfDIV); }
 expr:   MOD(expr,expr)  1 { fprintf(outfp, pfMOD); }
-expr:   BOR(expr,expr)  1 { fprintf(outfp, pfOR); }
-expr:   BAND(expr,expr) 1 { fprintf(outfp, pfAND); }
 expr:   LSH(expr,expr)  1 { fprintf(outfp, pfSHTL); }
 expr:   RSH(expr,expr)  1 { fprintf(outfp, pfSHTRS); }
 expr:   EQ(expr,expr)   1 { fprintf(outfp, pfEQ); }
@@ -54,9 +66,51 @@ expr:   GT(expr,expr)   1 { fprintf(outfp, pfGT); }
 expr:   GE(expr,expr)   1 { fprintf(outfp, pfGE); }
 expr:   UMINUS(expr)    1 { fprintf(outfp, pfNEG); }
 
+expr:   NOT(expr)   1 { fprintf(outfp, pfIMM pfEQ, 0); }
+
+expr:   AND(and,expr)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+and:    expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJZ pfTRASH, mklbl(p->place), pfWORD); }
+expr:   OR(or,expr) 1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(p->place), pfWORD); }
+
+
+%! if-else
+stmt:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+if: IF(cond,stmt)   1 { p->place = ++lbl; fprintf(outfp, pfJMP pfLABEL,mklbl(p->place), mklbl(LEFT_CHILD(p)->place)); }
+
+%! simple if (no else): uses only one label
+stmt:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
+
+%! left values
+lv: INDEX(lv,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
+%! falta os diversis type
+lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
+
+
+%! Sera q nos usamos load? * lv
+
+
+
+
 
 %%
 #include "y.tab.h"
 extern void yyerror(const char*);
 extern char **yynames;
 extern int trace;
+
+#ifndef NOTRACE
+static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
+{
+    int op = OP_LABEL(p);
+    YYCONST char *tname = yytermname[op] ? yytermname[op] : "?";
+    /* fprintf(stderr, "0x%lx:%s matched %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost); */
+    if (cost >= MAX_COST && bestcost >= MAX_COST) {
+      extern char **yynames;
+      fprintf(stderr, "0x%lx:%s NO MATCH %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost);
+      printNode(p, 0, yynames);
+    }
+}
+#endif
+
