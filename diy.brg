@@ -22,9 +22,20 @@ finit: FINIT(blocop, NIL)
 blocop: NIL
 blocop: bloco
 
-%! FIX THIS THE IF SOMEHOW
-bloco: BLOCO(,decls)
-bloco: BLOCO(decls)
+%! VERIFY (provavelmente separar o END eventualmente)
+bloco: BLOCO(END(list,brk),decls)
+bloco: BLOCO(list,decls)
+
+
+list: base
+list: END(list,base)
+
+
+
+
+%! FIXME fazer o codigo
+brk: BREAK(INT)         1   {}
+brk: CONTINUE(INT)      1   {}
 
 %!stmt:	VOID 1	{	}
 
@@ -46,8 +57,8 @@ param: PARAM(tipo,ID)
 
 
 base: VOID
-
-
+base: bloco
+base: expr
 
 %! while alterado para o nosso codigo Verificar postfix VERIFY
 base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
@@ -98,6 +109,15 @@ lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
 
 %! Sera q nos usamos load? * lv
 
+%! isto faz em comment(tb comment in B)
+%!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
+expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CHILD(p)->value.s), (int)(pfWORD*(RIGHT_CHILD(p)->place))); }
+
+
+args:   PARAMS(arg,args)     { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+args:   END       { p->place = 0; }
+%! VERIFICAR ARGUMENTO PK DOS TIPOS PARA O ENTER acima no mkfunc
+arg:    expr        1 { p->place = 1; }
 
 
 
