@@ -10,7 +10,7 @@
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 %}
-%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=','
+%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#'
 %term FINIT='(' BLOCO='{'
 %include "y.tab.h"
 %%
@@ -50,20 +50,24 @@ tipo: NUMBER 1 {}
 init: ID 1 {}
 
 params: PARAMS(params,param)  1 {}
-
-decls: END(decls,param)
+params: NIL
 
 param: PARAM(tipo,ID)
+
+decls: NIL
+decls: END(decls,param)
 
 
 base: VOID
 base: bloco
 base: expr
+base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
+
 
 %! while alterado para o nosso codigo Verificar postfix VERIFY
-base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
-do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl); fprintf(outfp, pfJZ, mklbl(lbl)); }
-begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
+%!base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
+%!do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl); fprintf(outfp, pfJZ, mklbl(lbl)); }
+%!begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
 
 %! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
 %!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
@@ -94,12 +98,12 @@ or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(
 
 
 %! if-else
-stmt:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
-if: IF(cond,stmt)   1 { p->place = ++lbl; fprintf(outfp, pfJMP pfLABEL,mklbl(p->place), mklbl(LEFT_CHILD(p)->place)); }
+%!stmt:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+%!if: IF(cond,stmt)   1 { p->place = ++lbl; fprintf(outfp, pfJMP pfLABEL,mklbl(p->place), mklbl(LEFT_CHILD(p)->place)); }
 
 %! simple if (no else): uses only one label
-stmt:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
-cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
+%!stmt:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+%!cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
 
 %! left values
 lv: INDEX(lv,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
@@ -115,7 +119,7 @@ expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CH
 
 
 args:   PARAMS(arg,args)     { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
-args:   END       { p->place = 0; }
+args:   NIL       { p->place = 0; }
 %! VERIFICAR ARGUMENTO PK DOS TIPOS PARA O ENTER acima no mkfunc
 arg:    expr        1 { p->place = 1; }
 
