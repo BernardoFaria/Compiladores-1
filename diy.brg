@@ -10,6 +10,11 @@
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 
+static char *extrns[100]; /* emit externs at the end only */
+static int extcnt;
+
+
+
 extern FILE *outfp;
 int lbl;
 char *mklbl(int n) {
@@ -38,6 +43,9 @@ static char *mkfunc(char *s) {
 
 finit: FINIT(blocop, params)
 finit: FINIT(blocop, NIL)
+
+%!extern function
+finit: FINIT(NIL,params)
 
 blocop: NIL
 blocop: bloco
@@ -185,4 +193,13 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
     }
 }
 #endif
+
+
+void externs()
+{
+    int i;
+    for (i = 0; i < extcnt; i++)
+        if (extrns[i])
+            fprintf(outfp, pfEXTRN, extrns[i]);
+}
 

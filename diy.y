@@ -18,6 +18,9 @@ int intonly(Node *arg, int);
 int noassign(Node *arg1, Node *arg2);
 static int ncicl;
 static char *fpar;
+
+
+void externs();
 %}
 
 %union {
@@ -52,7 +55,8 @@ static char *fpar;
 
 %token LOCAL POSINC POSDEC PTR CALL START PARAM NIL
 %%
-file	:
+begin   : file                 {externs();/*Put extends in the end*/}
+file	:                       
 	| file error ';'
 	| file public tipo ID ';'	{ IDnew($3->value.i, $4, 0); declare($2, 0, $3, $4, 0); }
 	| file public CONST tipo ID ';'	{ IDnew($4->value.i+5, $5, 0); declare($2, 1, $4, $5, 0); }
