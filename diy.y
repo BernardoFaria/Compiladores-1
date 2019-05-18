@@ -88,7 +88,7 @@ finit   : '(' params ')' blocop { $$ = binNode('(', $4, $2); }
 	| '(' ')' blocop        { $$ = binNode('(', $3, 0); /*TEST THIS 0->NIL*/}
 	;
 
-blocop  : ';'   { $$ = 0; /*Verificar NIL*/}
+blocop  : ';'   { $$ = nilNode(NIL); /*Verificar NIL*/}
         | bloco ';'   { $$ = $1; }
         ;
 
@@ -99,7 +99,7 @@ params	: param
 bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5 ? binNode(';', $4, $5) : $4, $3); IDpop(); }
 	;
 
-decls	:                       { $$ = 0; }
+decls	:                       { $$ = nilNode(NIL); }
 	| decls param ';'       { $$ = binNode(';', $1, $2); }
 	;
 
@@ -125,7 +125,7 @@ base	: ';'                   { $$ = nilNode(VOID); }
 	| error ';'       { $$ = nilNode(NIL); }
 	;
 
-end	:		{ $$ = 0; }
+end	:		{ $$ = nilNode(NIL); }
 	| brk;
 
 brk : BREAK intp ';'        { $$ = intNode(BREAK, $2); if ($2 <= 0 || $2 > ncicl) yyerror("invalid break argument"); }
