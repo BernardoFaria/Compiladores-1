@@ -13,8 +13,6 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 static char *extrns[100]; /* emit externs at the end only */
 static int extcnt;
 
-
-
 extern FILE *outfp;
 int lbl;
 char *mklbl(int n) {
@@ -202,4 +200,53 @@ void externs()
         if (extrns[i])
             fprintf(outfp, pfEXTRN, extrns[i]);
 }
+
+//FIXME CHECK VALUES
+int calculate_enter(char* fpar){
+	int enter = 0;
+	for(int i=1;i<=fpar[0];i++){
+		//ptr
+		if(fpar[i] / 10==1 || fpar[i] ==1 || fpar[i]==2)
+			enter+=pfWORD;
+		//number
+		else if(fpar[i]==3)
+			enter+=pfWORD*2;
+	}
+  return enter;
+}
+
+
+void function_burg(char *name, char* fpar, Node *stmt)
+{
+  int i;
+  int enter =calculate_enter(fpar);
+  printf("\tENTER VALUE%d\n",enter);
+
+  if (trace) printNode(stmt, 0, yynames);
+
+  //this could be optimized in NIL blocop
+  fflush(stdout);
+  fprintf(outfp, pfTEXT pfALIGN pfGLOBL pfLABEL pfENTER, mkfunc(name), pfFUNC, mkfunc(name), enter);
+  yyselect(stmt);
+  fprintf(outfp, pfLEAVE pfRET); /* just in case ... */
+  freeNode(stmt);
+
+  for (i = 0; i < extcnt; i++) /*case blocop null*/
+    if (extrns[i] && strcmp(extrns[i], mkfunc(name)) == 0) extrns[i] = 0;
+}
+
+// void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
+// {
+//   int typ;
+//   if (!value) {
+//     if (!pub && cnst) yyerror("local constants must be initialised");
+//     return;
+//   }
+//   if (value->attrib = INT && value->value.i == 0 && type->value.i > 10)
+//     return; /* NULL pointer */
+//   if ((typ = value->info) % 10 > 5) typ -= 5;
+//   if (type->value.i != typ)
+//     yyerror("wrong types in initialization");
+// }
+
 
