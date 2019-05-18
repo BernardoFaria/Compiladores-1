@@ -9,6 +9,26 @@
 
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
+
+extern FILE *outfp;
+int lbl;
+char *mklbl(int n) {
+  static char buf[20];
+  sprintf(buf, "_i%d", n);
+  return strcpy(malloc(strlen(buf)+1),buf);
+}
+
+static void outstr(char *s) {
+  while (*s) fprintf(outfp, pfCHAR, (unsigned char)*s++);
+  fprintf(outfp, pfCHAR, 0);
+}
+static char *mkfunc(char *s) {
+  static char buf[80];
+  strcpy(buf, "_");
+  strcat(buf, s);
+  return buf;
+}
+
 %}
 %term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#'
 %term FINIT='(' BLOCO='{'
@@ -47,15 +67,21 @@ tipo: INTEGER 1 {}
 tipo: STRING 1 {}
 tipo: NUMBER 1 {}
 
-init: ID 1 {}
+%!init: ID 1 {}
 
 params: PARAMS(params,param)  1 {}
 params: NIL
 
-param: PARAM(tipo,ID)
+args:   PARAMS(args,arg)    1   { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+args:   NIL       { p->place = 0; }
+%! VERIFICAR ARGUMENTO PK DOS TIPOS PARA O ENTER acima no mkfunc
+arg:    expr        1 { p->place = 1; }
+
+
+param: PARAM(tipo,ID)   1   {}
 
 decls: NIL
-decls: END(decls,param)
+decls: END(decls,param) 1   {}
 
 
 base: VOID
@@ -74,6 +100,16 @@ base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
 %!expr:   DEC(CTE, lval)  1 { fprintf(outfp, pfDUP pfDECR pfLOAD, LEFT_CHILD(p)->value.i); }
 %!expr:   INC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, RIGHT_CHILD(p)->value.i); }
 %!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
+
+
+expr: PTR(lv)
+
+expr: ATR(expr,lv)      1   {}
+
+expr: INT               1   {}
+expr: STR               1   {}
+expr: REAL              1   {}
+
 
 
 expr:   ADD(expr,expr)  1 { fprintf(outfp, pfADD); }
@@ -105,10 +141,14 @@ or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(
 %!stmt:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
 %!cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
 
+
+
 %! left values
 lv: INDEX(lv,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 %! falta os diversis type
 lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
+lv: ID      1   {}
+
 
 
 %! Sera q nos usamos load? * lv
@@ -116,12 +156,6 @@ lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
 %! isto faz em comment(tb comment in B)
 %!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
 expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CHILD(p)->value.s), (int)(pfWORD*(RIGHT_CHILD(p)->place))); }
-
-
-args:   PARAMS(arg,args)     { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
-args:   NIL       { p->place = 0; }
-%! VERIFICAR ARGUMENTO PK DOS TIPOS PARA O ENTER acima no mkfunc
-arg:    expr        1 { p->place = 1; }
 
 
 
