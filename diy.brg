@@ -69,10 +69,16 @@ tipo: NUMBER 1 {}
 
 %!init: ID 1 {}
 
-params: PARAMS(params,param)  1 {}
-params: NIL
+params: PARAMS(params,param)   {}
+params: param
 
-args:   PARAMS(args,arg)    1   { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+
+
+
+args:   PARAMS(args,arg)       { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+%!hipotese melhor
+%! args: PARAMS(NIL,expr)
+
 args:   NIL       { p->place = 0; }
 %! VERIFICAR ARGUMENTO PK DOS TIPOS PARA O ENTER acima no mkfunc
 arg:    expr        1 { p->place = 1; }

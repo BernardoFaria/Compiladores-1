@@ -85,10 +85,10 @@ init	: ATR ID ';'		{ $$ = strNode(ID, $2); $$->info = IDfind($2, 0) + 10; }
         ;
 
 finit   : '(' params ')' blocop { $$ = binNode('(', $4, $2); }
-	| '(' ')' blocop        { $$ = binNode('(', $3, 0); /*TEST THIS 0->NIL*/}
+	| '(' ')' blocop        { $$ = binNode('(', $3, nilNode(NIL)); }
 	;
 
-blocop  : ';'   { $$ = nilNode(NIL); /*Verificar NIL*/}
+blocop  : ';'   { $$ = nilNode(NIL); }
         | bloco ';'   { $$ = $1; }
         ;
 
@@ -96,7 +96,7 @@ params	: param
 	| params ',' param      { $$ = binNode(',', $1, $3); }
 	;
 
-bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5 ? binNode(';', $4, $5) : $4, $3); IDpop(); }
+bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5->info ? binNode(';', $4, $5) : $4, $3); IDpop(); }
 	;
 
 decls	:                       { $$ = nilNode(NIL); }
@@ -125,7 +125,7 @@ base	: ';'                   { $$ = nilNode(VOID); }
 	| error ';'       { $$ = nilNode(NIL); }
 	;
 
-end	:		{ $$ = nilNode(NIL); }
+end	:		{ $$ = nilNode(NIL); $$->info=0; }
 	| brk;
 
 brk : BREAK intp ';'        { $$ = intNode(BREAK, $2); if ($2 <= 0 || $2 > ncicl) yyerror("invalid break argument"); }
