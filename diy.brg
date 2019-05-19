@@ -46,7 +46,7 @@ static char *mkfunc(char *s) {
 finit: FINIT(blocop, params)
 finit: FINIT(blocop, NIL)
 
-blocop: NIL     {extrns[extcnt++] = dupstr(mkfunc(func_name)); /*bloco p only used in functions*/}
+blocop: NIL     
 blocop: bloco
 
 %! VERIFY (provavelmente separar o END eventualmente)
@@ -228,15 +228,20 @@ void function_burg(char *name, char* fpar, Node *stmt)
 
   if (trace) printNode(stmt, 0, yynames);
 
-  //this could be optimized in NIL blocop
   fflush(stdout);
   fprintf(outfp, pfTEXT pfALIGN pfGLOBL pfLABEL pfENTER, mkfunc(name), pfFUNC, mkfunc(name), enter);
   yyselect(stmt);
   fprintf(outfp, pfLEAVE pfRET); /* just in case ... */
   freeNode(stmt);
 
-  // for (i = 0; i < extcnt; i++) /*Remove extern case blocop is defined*/
-  //   if (extrns[i] && strcmp(extrns[i], mkfunc(name)) == 0) extrns[i] = 0;
+  for (i = 0; i < extcnt; i++) /*Remove extern case public forward declaration*/
+    if (extrns[i] && strcmp(extrns[i], mkfunc(name)) == 0) extrns[i] = 0;
+}
+
+void function_extern(char *func_name){
+  printf("EXTERNAL FUNC:%s\n",func_name);
+
+  extrns[extcnt++] = dupstr(mkfunc(func_name)); 
 }
 
 // void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)

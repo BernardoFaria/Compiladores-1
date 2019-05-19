@@ -28,7 +28,7 @@ void externs();
 
 
 void function_burg(char *name, char* fpar, Node *stmt);
-
+void function_extern(char *func_name);
 %}
 
 %union {
@@ -108,7 +108,7 @@ params	: param
 	| params ',' param      { $$ = binNode(',', $1, $3); }
 	;
 
-bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5->info ? binNode(';', $4, $5) : $4, $3); IDpop(); }
+bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5->attrib!=NIL ? binNode(';', $4, $5) : $4, $3); IDpop(); }
 	;
 
 decls	:                       { $$ = nilNode(NIL); }
@@ -137,7 +137,7 @@ base	: ';'                   { $$ = nilNode(VOID); }
 	| error ';'       { $$ = nilNode(NIL); }
 	;
 
-end	:		{ $$ = nilNode(NIL); $$->info=0; }
+end	:		{ $$ = nilNode(NIL); }
 	| brk;
 
 brk : BREAK intp ';'        { $$ = intNode(BREAK, $2); if ($2 <= 0 || $2 > ncicl) yyerror("invalid break argument"); }
@@ -313,12 +313,15 @@ void function(int pub, Node *type, char *name, Node *body)
 {
 	Node *bloco = LEFT_CHILD(body);
 	IDpop();
-	if (bloco != 0) { /* not a forward declaration */
+	if (bloco->attrib != NIL) { /* not a forward declaration */
 		long par;
 		int fwd = IDfind(name, &par);
 		if (fwd > 40) yyerror("duplicate function");
 		else IDreplace(fwd+40, name, par);
 
 		function_burg(name, fpar, body);
+	}else if(pub){/*public forward declaration(external function)*/
+		if (trace) printNode(body, 0, yynames);
+		function_extern(name);
 	}
 }
