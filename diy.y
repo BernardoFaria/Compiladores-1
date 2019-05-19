@@ -43,7 +43,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 %token <r> REAL
 %token <s> ID STR
 %token DO WHILE IF THEN FOR IN UPTO DOWNTO STEP BREAK CONTINUE
-%token VOID INTEGER STRING NUMBER CONST PUBLIC INCR DECR
+%token VOID INTEGER STRING NUMBER CONST PUBLIC INCR DECR ARGS
 %nonassoc IFX
 %nonassoc ELSE
 
@@ -157,8 +157,8 @@ list	: base
 	| list base     { $$ = binNode(';', $1, $2); }
 	;
 
-args	: expr		{ $$ = binNode(',', nilNode(NIL), $1); }
-	| args ',' expr { $$ = binNode(',', $1, $3); }
+args	: expr		{ $$ = binNode(ARGS, nilNode(NIL), $1); }
+	| args ',' expr { $$ = binNode(ARGS, $1, $3); }
 	;
 
 lv	: ID		{ long pos; int typ = IDfind($1, &pos);//LOCAL se for local, na pilha

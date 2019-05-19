@@ -28,3 +28,5 @@ run/libdiy\.a
 run/linux\.o
 
 run/sys\.o
+
+other_tests/
