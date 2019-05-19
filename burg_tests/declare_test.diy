@@ -7,7 +7,12 @@
 integer cnt2;
 public integer cnt3 :=3;
 integer cnt := 1;
+public integer zero := 0;
+
+public number rzero := 0.0;
+public number r := 0.1;
 string a:="olá pessoal!\n";
+
 
 
 public void prints(string s)
@@ -26,6 +31,8 @@ public integer entry (integer argc, string *argv, string *envp) {
   println()
   printi(cnt3+cnt)
   println()
+  printi(zero)
+  println()
 
   printi(2019)
     println()
@@ -39,6 +46,10 @@ public integer entry (integer argc, string *argv, string *envp) {
   println()
   printd(3.14)
     println()
+  printd(r)
+  println()
+  printd(rzero)
+  println()
   ==entry := 0
 };
 

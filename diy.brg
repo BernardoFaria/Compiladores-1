@@ -115,7 +115,7 @@ base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
 %!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
-expr: PTR(lv)           1   {fprintf(outfp,pfLOAD);/*FIX FLOAT*/}
+expr: PTR(lv)           1   {int type = p->info % 10; if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 
 expr: ATR(expr,lv)      1   {}
 
@@ -163,7 +163,7 @@ expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CH
 %! left values
 lv: INDEX(lv,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 %! falta os diversis type
-lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
+lv: LOCAL  1 {/*FIX FLOAT*/ fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
 lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
 
 
@@ -259,6 +259,11 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
   if(pub) fprintf(outfp, pfGLOBL, name, pfOBJ);
 
   if(cnst) fprintf(outfp, pfRODATA);
+  else if(!value || (type->attrib == INTEGER &&  value->value.i==0) || (type->attrib == NUMBER &&  value->value.r==0) ){
+    fprintf(outfp, pfBSS); //although if has no value cant be const
+    fprintf(outfp,pfALIGN pfLABEL, name);
+    return; //finish
+  } 
   else fprintf(outfp, pfDATA);
 
 
