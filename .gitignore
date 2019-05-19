@@ -14,3 +14,17 @@ TODO
 \.vscode/
 
 out\.asm
+
+a\.out
+
+out\.o
+
+run/dbl\.o
+
+run/lib\.o
+
+run/libdiy\.a
+
+run/linux\.o
+
+run/sys\.o

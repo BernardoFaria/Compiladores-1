@@ -1,0 +1,24 @@
+==public integer pcnt;
+== public sem value e logo extern imediatamente
+== integer pcnt:=2;
+
+
+
+integer cnt2;
+public integer cnt3 :=22;
+integer cnt := 12;
+string a:="olá pessoal!\n";
+
+
+public void prints(string s)
+
+
+public integer entry (integer argc, string *argv, string *envp) {
+  prints(a)
+  ==prints("in line argument string!\n")
+  ==entry := 0
+};
+
+
+
+

@@ -161,7 +161,7 @@ args	: expr		{ $$ = binNode(',', nilNode(NIL), $1); }
 	| args ',' expr { $$ = binNode(',', $1, $3); }
 	;
 
-lv	: ID		{ long pos; int typ = IDfind($1, &pos);
+lv	: ID		{ long pos; int typ = IDfind($1, &pos);//LOCAL se for local, na pilha
                           if (pos == 0) $$ = strNode(ID, $1);
                           else $$ = intNode(LOCAL, pos);
 			  $$->info = typ;

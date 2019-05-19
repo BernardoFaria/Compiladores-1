@@ -19,6 +19,10 @@ $(LANG): $(INICIAL).y $(LANG).l $(LANG).brg
 examples:: $(LANG)
 	make -C $(EXS)
 
+build::
+	nasm -felf32 -F dwarf -g out.asm
+	ld -melf_i386 out.o run/libdiy.a
+
 clean::
 	make -C $(LIB) clean
 	make -C $(RUN) clean

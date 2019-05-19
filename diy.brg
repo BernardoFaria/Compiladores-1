@@ -115,11 +115,11 @@ base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
 %!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
-expr: PTR(lv)
+expr: PTR(lv)           1   {fprintf(outfp,pfLOAD);}
 
 expr: ATR(expr,lv)      1   {}
 
-expr: INT               1   {}
+expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
 expr: STR               1   {}
 expr: REAL              1   {}
 
@@ -145,6 +145,10 @@ and:    expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJZ pfTRASH, mkl
 expr:   OR(or,expr) 1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
 or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(p->place), pfWORD); }
 
+%! isto faz em comment(tb comment in B)
+%!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
+expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CHILD(p)->value.s), (int)(pfWORD*(RIGHT_CHILD(p)->place))); }
+
 
 %! if-else
 %!stmt:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
@@ -160,16 +164,11 @@ or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(
 lv: INDEX(lv,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 %! falta os diversis type
 lv: LOCAL  1 { fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
-lv: ID      1   {}
+lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
 
 
 
 %! Sera q nos usamos load? * lv
-
-%! isto faz em comment(tb comment in B)
-%!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
-expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CHILD(p)->value.s), (int)(pfWORD*(RIGHT_CHILD(p)->place))); }
-
 
 
 
