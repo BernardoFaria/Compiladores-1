@@ -244,18 +244,65 @@ void function_extern(char *func_name){
   extrns[extcnt++] = dupstr(mkfunc(func_name)); 
 }
 
-// void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
-// {
-//   int typ;
-//   if (!value) {
-//     if (!pub && cnst) yyerror("local constants must be initialised");
-//     return;
-//   }
-//   if (value->attrib = INT && value->value.i == 0 && type->value.i > 10)
-//     return; /* NULL pointer */
-//   if ((typ = value->info) % 10 > 5) typ -= 5;
-//   if (type->value.i != typ)
-//     yyerror("wrong types in initialization");
-// }
+void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
+{
+  int siz = type->attrib==REAL ? 2 : 1;//this is not totally right
+
+  if(value) printf("VALUE POSITIVE");
+  printf("pub %d",pub);
+  //se for variavel exterior faz apenas extern
+  if(pub && !value){
+      printf("EXTERN DECLARE %s\n",name);
+      extrns[extcnt++] = dupstr(name); 
+      return;
+  }
+
+  if(pub) fprintf(outfp, pfGLOBL, name, pfOBJ);
+
+  if(cnst) fprintf(outfp, pfRODATA);
+  else fprintf(outfp, pfDATA);
+
+
+  fprintf(outfp,pfALIGN pfLABEL, name);
+
+
+  //FIXME VERIFY THIS
+  if(value){
+    switch (type->attrib)
+    {
+      case INTEGER:{
+        // //considering a int in 32bit system, long 64bit        
+        // fprintf(outfp, pfWORD == 4 ? pfINTEGER : pfLONG, value->value.i);
+
+         fprintf(outfp,pfINTEGER, value->value.i);
+
+        break;
+      }
+      case STRING:{
+      
+        char *l = mklbl(++lbl);
+
+        fprintf(outfp, pfRODATA pfALIGN pfLABEL, l);
+
+        outstr(value->value.s);
+
+        fprintf(outfp, pfDATA pfID, l); //FIXME perceber isto(penso q seja associar)
+
+        break;
+      }
+
+      case NUMBER:{
+        fprintf(outfp,pfDOUBLE, value->value.r);
+        break;
+      }
+    }
+    
+  }else{
+      //not initiated,not public
+      fprintf(outfp, pfBYTE, pfWORD * siz);
+  }
+
+
+}
 
 

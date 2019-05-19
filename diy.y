@@ -29,6 +29,7 @@ void externs();
 
 void function_burg(char *name, char* fpar, Node *stmt);
 void function_extern(char *func_name);
+void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 %}
 
 %union {
@@ -225,13 +226,22 @@ void declare(int pub, int cnst, Node *type, char *name, Node *value)
   int typ;
   if (!value) {
     if (!pub && cnst) yyerror("local constants must be initialised");
+		declare_burg(pub, cnst, type, name, value);
     return;
   }
   if (value->attrib = INT && value->value.i == 0 && type->value.i > 10)
-  	return; /* NULL pointer */
+  	return; /* NULL pointer */ //o q e q devo fazer aqui?
   if ((typ = value->info) % 10 > 5) typ -= 5;
-  if (type->value.i != typ)
-    yyerror("wrong types in initialization");
+  if (type->value.i != typ){
+			yyerror("wrong types in initialization");
+	}
+
+	declare_burg(pub, cnst, type, name, value);
+
+	
+
+
+
 }
 void enter(int pub, int typ, char *name) {
 	fpar = malloc(32); /* 31 arguments, at most */
