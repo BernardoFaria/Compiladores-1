@@ -36,6 +36,28 @@ static char *mkfunc(char *s) {
   return buf;
 }
 
+static int only_integer(Node *p){
+  return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+}
+
+static int only_integer1(Node *p){
+  return p->info == 1 ? 1 : MAX_COST; 
+}
+
+static int only_real1(Node *p){
+  return p->info == 3 ? 1 : MAX_COST; 
+}
+
+static int has_real(Node *p){
+  return LEFT_CHILD(p)->info == 3 || RIGHT_CHILD(p)->info == 3 ? 1 : MAX_COST; 
+}
+
+
+static void convert_child_real(Node*p){
+  if(LEFT_CHILD(p)->info == 1) fprintf(outfp,pfDPOP pfI2D pfDPUSH); 
+  if(RIGHT_CHILD(p)->info == 1) fprintf(outfp,pfI2D);
+}
+
 %}
 %term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#'
 %term FINIT='(' BLOCO='{'
@@ -121,21 +143,39 @@ expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mkl
 expr: REAL              1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); fprintf(outfp,pfDOUBLE, p->value.r); fprintf(outfp, pfTEXT pfADDR pfLOAD2, mklbl(lbl));}
 
 
+%!2 instrucntions not efficient but im not a person of long combinations
+expr:   ADD(expr,expr)  only_integer { fprintf(outfp, pfADD); }
+expr:   SUB(expr,expr)  only_integer { fprintf(outfp, pfSUB); }
+expr:   MUL(expr,expr)  only_integer { fprintf(outfp, pfMUL); }
+expr:   DIV(expr,expr)  only_integer { fprintf(outfp, pfDIV); }
 
-expr:   ADD(expr,expr)  1 { fprintf(outfp, pfADD); }
-expr:   SUB(expr,expr)  1 { fprintf(outfp, pfSUB); }
-expr:   MUL(expr,expr)  1 { fprintf(outfp, pfMUL); }
-expr:   DIV(expr,expr)  1 { fprintf(outfp, pfDIV); }
-expr:   MOD(expr,expr)  1 { fprintf(outfp, pfMOD); }
-expr:   EQ(expr,expr)   1 { fprintf(outfp, pfEQ); }
-expr:   NE(expr,expr)   1 { fprintf(outfp, pfNE); }
-expr:   LT(expr,expr)   1 { fprintf(outfp, pfLT); }
-expr:   LE(expr,expr)   1 { fprintf(outfp, pfLE); }
-expr:   GT(expr,expr)   1 { fprintf(outfp, pfGT); }
-expr:   GE(expr,expr)   1 { fprintf(outfp, pfGE); }
-expr:   UMINUS(expr)    1 { fprintf(outfp, pfNEG); }
+expr:   ADD(expr,expr)  has_real { convert_child_real(p); fprintf(outfp, pfDADD); }
+expr:   MUL(expr,expr)  has_real { convert_child_real(p); fprintf(outfp, pfDMUL); }
+expr:   SUB(expr,expr)  has_real { convert_child_real(p); fprintf(outfp, pfDSUB); }
+expr:   DIV(expr,expr)  has_real { convert_child_real(p); fprintf(outfp, pfDDIV); }
 
-expr:   NOT(expr)   1 { fprintf(outfp, pfIMM pfEQ, 0); }
+expr:   MOD(expr,expr)  only_integer { fprintf(outfp, pfMOD); }
+
+
+expr:   EQ(expr,expr)   only_integer { fprintf(outfp, pfEQ); }
+expr:   NE(expr,expr)   only_integer { fprintf(outfp, pfNE); }
+expr:   LT(expr,expr)   only_integer { fprintf(outfp, pfLT); }
+expr:   LE(expr,expr)   only_integer { fprintf(outfp, pfLE); }
+expr:   GT(expr,expr)   only_integer { fprintf(outfp, pfGT); }
+expr:   GE(expr,expr)   only_integer { fprintf(outfp, pfGE); }
+
+expr:   EQ(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfEQ, 0); }
+expr:   NE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfNE, 0); }
+expr:   LT(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfLT, 0); }
+expr:   LE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfLE, 0); }
+expr:   GT(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfGT, 0); }
+expr:   GE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfGE, 0); }
+
+
+expr:   UMINUS(expr)    only_integer1 { fprintf(outfp, pfNEG); }
+expr:   UMINUS(expr)    only_real1 { fprintf(outfp, pfDNEG); }
+
+expr:   NOT(expr)   only_integer1 { fprintf(outfp, pfIMM pfEQ, 0); }
 
 expr:   AND(and,expr)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
 and:    expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJZ pfTRASH, mklbl(p->place), pfWORD); }

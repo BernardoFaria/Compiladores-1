@@ -44,11 +44,26 @@ public integer entry (integer argc, string *argv, string *envp) {
 
   prints("DOUBLE PRINT")
   println()
-  printd(3.14)
+  printd(3.14+1)
     println()
-  printd(r)
+  printd(2+r)
   println()
   printd(rzero)
+  println()
+
+
+
+  prints("DOUBLE COMPARATIONS")
+  println()
+    printi(3=3.1)
+  println()
+    printi(0.1<0.2)
+  println()
+    printi(3.12>5)
+  println()
+    printi(1.1<=1.1)
+  println()
+    printi(cnt3<>r)
   println()
   ==entry := 0
 };
