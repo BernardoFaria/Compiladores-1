@@ -126,7 +126,7 @@ stmt	: base
 	| brk
 	;
 
-base	: ';'                   { $$ = nilNode(VOID); }
+base	: ';'                   { $$ = nilNode(NIL); }
 	| DO { ncicl++; } stmt WHILE expr ';' { $$ = binNode(WHILE, binNode(DO, nilNode(START), $3), $5); ncicl--; }
 	| FOR lv IN expr UPTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(LE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('+', uniNode(PTR, $2), $7), $2)))); ncicl--; }
 	| FOR lv IN expr DOWNTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(GE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('-', uniNode(PTR, $2), $7), $2)))); ncicl--; }
@@ -209,7 +209,7 @@ expr	: lv		{ $$ = uniNode(PTR, $1); $$->info = $1->info; }
 	| '(' expr ')' { $$ = $2; $$->info = $2->info; }
 	| ID '(' args ')' { $$ = binNode(CALL, strNode(ID, $1), $3);
                             $$->info = checkargs($1, $3); }
-	| ID '(' ')'    { $$ = binNode(CALL, strNode(ID, $1), nilNode(VOID));
+	| ID '(' ')'    { $$ = binNode(CALL, strNode(ID, $1), nilNode(NIL));
                           $$->info = checkargs($1, 0); }
 	;
 

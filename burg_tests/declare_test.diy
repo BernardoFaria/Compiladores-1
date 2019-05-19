@@ -5,17 +5,40 @@
 
 
 integer cnt2;
-public integer cnt3 :=22;
-integer cnt := 12;
+public integer cnt3 :=3;
+integer cnt := 1;
 string a:="olá pessoal!\n";
 
 
 public void prints(string s)
+public void printi(integer i)
+public void printd(number d)
+public void println()
 
 
 public integer entry (integer argc, string *argv, string *envp) {
   prints(a)
-  ==prints("in line argument string!\n")
+  prints("in line argument string!\n")
+  
+  prints("INteger Numbers\n")
+
+  printi(cnt)
+  println()
+  printi(cnt3+cnt)
+  println()
+
+  printi(2019)
+    println()
+  printi(2019/10)
+    println()
+  printi(2019-50)
+    println()
+
+
+  prints("DOUBLE PRINT")
+  println()
+  printd(3.14)
+    println()
   ==entry := 0
 };
 

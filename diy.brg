@@ -97,7 +97,7 @@ decls: NIL
 decls: END(decls,param) 1   {}
 
 
-base: VOID
+base: NIL
 base: bloco
 base: expr
 base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
@@ -115,13 +115,13 @@ base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
 %!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
-expr: PTR(lv)           1   {fprintf(outfp,pfLOAD);}
+expr: PTR(lv)           1   {fprintf(outfp,pfLOAD);/*FIX FLOAT*/}
 
 expr: ATR(expr,lv)      1   {}
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
-expr: STR               1   {}
-expr: REAL              1   {}
+expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); outstr(p->value.s); fprintf(outfp, pfTEXT pfADDR, mklbl(lbl));}
+expr: REAL              1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); fprintf(outfp,pfDOUBLE, p->value.r); fprintf(outfp, pfTEXT pfADDR pfLOAD2, mklbl(lbl));}
 
 
 
