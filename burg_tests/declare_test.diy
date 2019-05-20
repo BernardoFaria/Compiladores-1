@@ -36,6 +36,14 @@ public void println()
 == };
 
 public integer entry (integer argc, string *argv, string *envp) {
+  integer local
+
+  printi(local)
+  println()
+  local:=42
+  printi(local)
+  println() 
+
 ==  prints(a)
 ==  prints("in line argument string!\n")
 ==  
@@ -94,9 +102,9 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==
 ==
 ==
-  prints("String index\n")
-    printi(a[1])
-  println()
+==  prints("String index\n")
+==    printi(a[1])
+==  println()
 ==  a[1]:=75
 ==  prints(a)
 ==  a:="ola nova string\n"

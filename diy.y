@@ -27,6 +27,7 @@ void externs();
 // void enter(int pub, int typ, char *name);
 // void function(int pub, Node *type, char *name, Node *body);
 static int local_value;
+static int pos;
 
 void function_burg(char *name, char* fpar, Node *stmt,Node *type);
 void function_extern(char *func_name);
@@ -123,7 +124,9 @@ decls	:                       { $$ = nilNode(NIL); }
 	;
 
 param	: tipo ID               { $$ = binNode(PARAM, $1, strNode(ID, $2));
-                                  IDnew($1->value.i, $2, local_value+=dim($1->value.i));
+																	//if func arg, else local arg
+                                  if (IDlevel() == 1) IDnew($1->value.i, $2, local_value+=dim($1->value.i)); 
+																	else IDnew($1->value.i, $2, pos-=dim($1->value.i)); 
 																	printf("Param local value %d \n",local_value);
                                   if (IDlevel() == 1) fpar[++fpar[0]] = $1->value.i;
                                 }

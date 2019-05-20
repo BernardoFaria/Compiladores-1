@@ -30,3 +30,7 @@ run/linux\.o
 run/sys\.o
 
 other_tests/
+
+*.asm
+
+*.o

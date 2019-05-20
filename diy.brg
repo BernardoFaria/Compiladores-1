@@ -147,8 +147,8 @@ decls: END(decls,param) 1   {}
 base: NIL
 base: bloco
 base: expr
-base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
-
+base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
+alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
 %! while alterado para o nosso codigo Verificar postfix VERIFY
 %!base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
