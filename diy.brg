@@ -10,6 +10,9 @@
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 
+static long brklbl[20], brkcnt; /* break labels */
+
+
 static char *extrns[100]; /* emit externs at the end only */
 static int extcnt;
 
@@ -151,9 +154,9 @@ base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
 %! while alterado para o nosso codigo Verificar postfix VERIFY
-%!base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))-    >place), mklbl(LEFT_CHILD(p)->place)); }
-%!do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl); fprintf(outfp, pfJZ, mklbl(lbl)); }
-%!begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
+base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJZ, mklbl(LEFT_CHILD(p)->place)); fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place)); }
+do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl);  }
+begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
 
 %! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
 %!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
@@ -165,15 +168,13 @@ alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
-assign: expr		1 { fprintf(outfp, pfDUP); }
+assign: expr		1 { /*fprintf(outfp, pfDUP);*/ }
 
 expr: ATR(assign,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else fprintf(outfp, pfSTORE); }
-%!expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
-%!expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
-
-
-
-%!expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, p->value.s); }
+%! More eficient falta local
+expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
+expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
+expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, p->value.s); }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
 expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); outstr(p->value.s); fprintf(outfp, pfTEXT pfADDR, mklbl(lbl));}
