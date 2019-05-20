@@ -178,12 +178,12 @@ expr:   GE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP 
 
 
 %!test this in future
-expr:   EQ(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfEQ, "_strcmp", 0); }
-expr:   NE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfNE, "_strcmp", 0); }
-expr:   LT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfLT, "_strcmp", 0); }
-expr:   LE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfLE, "_strcmp", 0); }
-expr:   GT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfGT, "_strcmp", 0); }
-expr:   GE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfIMM pfGE, "_strcmp", 0); }
+expr:   EQ(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfEQ, "_strcmp", 0); }
+expr:   NE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfNE, "_strcmp", 0); }
+expr:   LT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLT, "_strcmp", 0); }
+expr:   LE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLE, "_strcmp", 0); }
+expr:   GT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGT, "_strcmp", 0); }
+expr:   GE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGE, "_strcmp", 0); }
 
 
 expr:   UMINUS(expr)    only_integer1 { fprintf(outfp, pfNEG); }
