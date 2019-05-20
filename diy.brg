@@ -234,13 +234,17 @@ expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CH
 
 
 %! if-else
-%!stmt:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
-%!if: IF(cond,stmt)   1 { p->place = ++lbl; fprintf(outfp, pfJMP pfLABEL,mklbl(p->place), mklbl(LEFT_CHILD(p)->place)); }
+base:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+
+if: IF(cond,stmt)   1 { p->place = ++lbl; fprintf(outfp, pfJMP pfLABEL,mklbl(p->place), mklbl(LEFT_CHILD(p)->place)); }
 
 %! simple if (no else): uses only one label
-%!stmt:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
-%!cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
+base:   IF(cond,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+cond:   expr        1 { p->place = ++lbl; fprintf(outfp, pfJZ, mklbl(p->place)); }
 
+
+stmt: base
+stmt: brk
 
 
 %! left values

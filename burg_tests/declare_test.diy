@@ -62,6 +62,12 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==    println()
 ==
 ==    
+
+      if argc < 2 then{
+        prints("argc less than 2\n")
+      } 
+  else prints("argc BIGGER than 2\n")
+
     printi(argc)
     println()
     argc:=42
@@ -109,13 +115,13 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==  prints(a)
 ==  a:="ola nova string\n"
 ==  prints(a)
-    prints("Local Args\n")
-      printi(argc)
-  println()
-    prints(argv[2])
-  println()
-  prints(envp[0])
-  println()
+==    prints("Local Args\n")
+==      printi(argc)
+==  println()
+==    prints(argv[2])
+==  println()
+==  prints(envp[0])
+==  println()
 ==    printi(argv[1][0])
 ==  println()
 
