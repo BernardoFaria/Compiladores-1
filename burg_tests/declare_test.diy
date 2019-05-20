@@ -21,13 +21,19 @@ public void printd(number d)
 public void println()
 
 
-public void test(integer a, integer b){
-  prints("func args test\n")
-  printi(a)
-  println()
-  printi(b)
-  println()
-};
+== public void test(integer a, integer b){
+==   prints("func args test\n")
+==   printi(a)
+==   println()
+== 
+==   a:=51;
+== 
+==   printi(a)
+==   println()
+== 
+==   printi(b)
+==   println()
+== };
 
 public integer entry (integer argc, string *argv, string *envp) {
 ==  prints(a)
@@ -41,6 +47,18 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==  println()
 ==  printi(zero)
 ==  println()
+==     printi(cnt2)
+==    println()
+==    cnt2:=42
+==    printi(cnt2)
+==    println()
+==
+==    
+    printi(argc)
+    println()
+    argc:=42
+    printi(argc)
+    println()
 ==
 ==  printi(2019)
 ==    println()
@@ -79,17 +97,23 @@ public integer entry (integer argc, string *argv, string *envp) {
   prints("String index\n")
     printi(a[1])
   println()
+==  a[1]:=75
+==  prints(a)
+==  a:="ola nova string\n"
+==  prints(a)
     prints("Local Args\n")
       printi(argc)
   println()
-    prints(argv[0])
+    prints(argv[2])
+  println()
+  prints(envp[0])
   println()
 ==    printi(argv[1][0])
 ==  println()
 
-  test(2,3);
+==  test(2,3);
 
-  entry := 0
+==  entry := 0
 };
 
 

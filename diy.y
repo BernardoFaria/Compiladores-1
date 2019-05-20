@@ -28,11 +28,11 @@ void externs();
 // void function(int pub, Node *type, char *name, Node *body);
 static int local_value;
 
-void function_burg(char *name, char* fpar, Node *stmt);
+void function_burg(char *name, char* fpar, Node *stmt,Node *type);
 void function_extern(char *func_name);
 void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 
-static int dim(int type){
+int dim(int type){
 	if(type==3) return (pfWORD==4 ? 2*pfWORD : pfWORD);
 	else return pfWORD;
 }
@@ -255,6 +255,7 @@ void enter(int pub, int typ, char *name) {
 	IDpush();
 
 	local_value= dim(typ); /*Reset local for func args*/
+	///fpar[++fpar[0]] = typ;
 	if (typ != 4) IDnew(typ, name, local_value);  //variavel de retorno
 }
 
@@ -335,7 +336,7 @@ void function(int pub, Node *type, char *name, Node *body)
 		if (fwd > 40) yyerror("duplicate function");
 		else IDreplace(fwd+40, name, par);
 
-		function_burg(name, fpar, body);
+		function_burg(name, fpar, body,type);
 	}else if(pub){/*public forward declaration(external function)*/
 		if (trace) printNode(body, 0, yynames);
 		function_extern(name);

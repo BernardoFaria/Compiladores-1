@@ -84,6 +84,8 @@ static void convert_child_real(Node*p){
   if(RIGHT_CHILD(p)->info == 1) fprintf(outfp,pfI2D);
 }
 
+int dim(int type);
+
 %}
 %term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#'
 %term FINIT='(' BLOCO='{'
@@ -163,7 +165,15 @@ base: ALLOC(expr,lv) 1 {fprintf(outfp, pfSTORE);}
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
-expr: ATR(expr,lv)      1   {}
+assign: expr		1 { fprintf(outfp, pfDUP); }
+
+expr: ATR(assign,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else fprintf(outfp, pfSTORE); }
+%!expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
+%!expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
+
+
+
+%!expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, p->value.s); }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
 expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); outstr(p->value.s); fprintf(outfp, pfTEXT pfADDR, mklbl(lbl));}
@@ -279,8 +289,8 @@ void externs()
 }
 
 //FIXME CHECK VALUES
-int calculate_enter(char* fpar){
-	int enter = 0;
+int calculate_enter(char* fpar,int type){
+	int enter = dim(type);
 	for(int i=1;i<=fpar[0];i++){
 		//ptr
 		if(fpar[i] / 10==1 || fpar[i] ==1 || fpar[i]==2)
@@ -293,10 +303,10 @@ int calculate_enter(char* fpar){
 }
 
 
-void function_burg(char *name, char* fpar, Node *stmt)
+void function_burg(char *name, char* fpar, Node *stmt,Node *type)
 {
   int i;
-  int enter =calculate_enter(fpar);
+  int enter =calculate_enter(fpar,type->value.i);
   func_name=dupstr(name);
   printf("\tENTER VALUE%d\n",enter);
 
@@ -306,8 +316,11 @@ void function_burg(char *name, char* fpar, Node *stmt)
 
   fflush(stdout);
   fprintf(outfp, pfTEXT pfALIGN pfGLOBL pfLABEL pfENTER, mkfunc(name), pfFUNC, mkfunc(name), enter);
+  
   yyselect(stmt);
-  fprintf(outfp, pfLEAVE pfRET); /* just in case ... */
+
+
+  fprintf(outfp, pfLOCAL pfPOP pfLEAVE pfRET,dim(type->value.i)); /* just in case ... */
   freeNode(stmt);
 
   for (i = 0; i < extcnt; i++) /*Remove extern case public forward declaration*/
