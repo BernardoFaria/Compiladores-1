@@ -130,7 +130,7 @@ params: param               1   {}
 
 
 
-args:   ARGS(args,arg)     1  { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+args:   ARGS(arg,args)     1  { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
 args:   NIL       { p->place = 0; }
 %! nao serve de nada de momento
 arg:    expr        1 { p->place = 1; }

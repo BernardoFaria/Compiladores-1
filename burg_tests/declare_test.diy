@@ -21,6 +21,14 @@ public void printd(number d)
 public void println()
 
 
+public void test(integer a, integer b){
+  prints("func args test\n")
+  printi(a)
+  println()
+  printi(b)
+  println()
+};
+
 public integer entry (integer argc, string *argv, string *envp) {
 ==  prints(a)
 ==  prints("in line argument string!\n")
@@ -78,7 +86,10 @@ public integer entry (integer argc, string *argv, string *envp) {
   println()
 ==    printi(argv[1][0])
 ==  println()
-  ==entry := 0
+
+  test(2,3);
+
+  entry := 0
 };
 
 

@@ -164,8 +164,8 @@ list	: base
 	| list base     { $$ = binNode(';', $1, $2); }
 	;
 
-args	: expr		{ $$ = binNode(ARGS, nilNode(NIL), $1); }
-	| args ',' expr { $$ = binNode(ARGS, $1, $3); }
+args	: expr		{ $$ = binNode(ARGS, $1, nilNode(NIL) ); }
+	| args ',' expr { $$ = binNode(ARGS, $3, $1); }
 	;
 
 lv	: ID		{ long pos; int typ = IDfind($1, &pos);//LOCAL se for local, na pilha
@@ -246,20 +246,16 @@ void declare(int pub, int cnst, Node *type, char *name, Node *value)
 
 	declare_burg(pub, cnst, type, name, value);
 
-	
-
-
-
 }
 void enter(int pub, int typ, char *name) {
-	//FIX ME futuramente IDnew da funcao
-	local_value= dim(typ); /*Reset local for func args*/
 	fpar = malloc(32); /* 31 arguments, at most */
 	fpar[0] = 0; /* argument count */
 	if (IDfind(name, (long*)IDtest) < 20)
 		IDnew(typ+20, name, (long)fpar);
 	IDpush();
-	if (typ != 4) IDnew(typ, name, 0);
+
+	local_value= dim(typ); /*Reset local for func args*/
+	if (typ != 4) IDnew(typ, name, local_value);  //variavel de retorno
 }
 
 int checkargs(char *name, Node *args) {
@@ -284,7 +280,7 @@ int checkargs(char *name, Node *args) {
 				err = 1;
 				break;
 			}
-			n = RIGHT_CHILD(args);
+			n = LEFT_CHILD(args);
 			typ = n->info;
 			if (typ % 10 > 5) typ -= 5; /* remove CONST */
 			null =  (n->attrib == INT && n->value.i == 0 && arg[i] > 10) ? 1 : 0;
@@ -293,7 +289,7 @@ int checkargs(char *name, Node *args) {
 				err = 1;
 				break;
 			}
-			args = LEFT_CHILD(args);
+			args = RIGHT_CHILD(args);
 			i--;
 		} while (args->attrib != NIL);
 		if (!err && i > 0)
