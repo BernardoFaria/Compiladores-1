@@ -11,6 +11,7 @@
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
 
 static long brklbl[20], brkcnt; /* break labels */
+static long continuelbl[20], continuecnt; /* break labels */
 
 
 static char *extrns[100]; /* emit externs at the end only */
@@ -107,6 +108,7 @@ bloco: BLOCO(END(list,brk),decls)
 bloco: BLOCO(list,decls)
 
 
+
 list: base
 list: END(list,base)
 
@@ -114,8 +116,8 @@ list: END(list,base)
 
 
 %! FIXME fazer o codigo
-brk: BREAK(INT)         1   {}
-brk: CONTINUE(INT)      1   {}
+brk: BREAK        1   {fprintf(outfp, pfJMP, mklbl(brklbl[brkcnt + 1 - p->value.i]));}
+brk: CONTINUE      1   {fprintf(outfp, pfJMP, mklbl(continuelbl[continuecnt + 1 - p->value.i]));}
 
 %!stmt:	VOID 1	{	}
 
@@ -154,9 +156,9 @@ base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
 %! while alterado para o nosso codigo Verificar postfix VERIFY
-base:   WHILE(do,expr)   1 { brkcnt--; fprintf(outfp, pfJZ, mklbl(LEFT_CHILD(p)->place)); fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place)); }
-do: DO(begin,stmt) 1 { p->place = (brklbl[++brkcnt] = ++lbl);  }
-begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); }
+base:   WHILE(do,expr)   1 { brkcnt--; continuecnt--; fprintf(outfp, pfJZ, mklbl(LEFT_CHILD(p)->place)); fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place)); }
+do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1; }
+begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); continuelbl[++continuecnt] = lbl; brklbl[++brkcnt] = ++lbl;   }
 
 %! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
 %!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }

@@ -37,13 +37,60 @@ public void println()
 
 public integer entry (integer argc, string *argv, string *envp) {
   integer local
-
+  integer i
+  
   printi(local)
   println()
-  local:=42
+  local:=10-local
   printi(local)
   println() 
+  
 
+
+  prints("DO WHILE\n")
+  do{
+    printi(local)
+    prints("->")
+    local:=local-1
+  } while local > 0
+
+
+  i:=0
+  do{
+
+    if i >= 2 then {
+      prints("fim")
+      break;
+    }
+
+    do{
+      i:=i+1
+      if i < 2 then {
+        prints("continue1\n")
+        continue;
+      }
+      prints("deve imprimir apenas 1 vez com 2\n")
+      printi(i)
+      do {
+        prints("break 2\n")
+        break 2;
+      } while 1
+      prints("nem isto")
+    } while 1
+
+    do{
+      do{
+        prints("continue 3\n")
+        continue 3;
+      } while 1
+    } while 1
+
+    prints("nao imprimir")
+
+  } while 1
+
+
+  println()
 ==  prints(a)
 ==  prints("in line argument string!\n")
 ==  
