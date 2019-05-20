@@ -6,6 +6,7 @@
 #include <string.h>
 #include "node.h"
 #include "tabid.h"
+#include "postfix.h"
 
 extern int yylex(),yyselect();
 extern int trace;
@@ -25,11 +26,16 @@ void externs();
 // void declare(int pub, int cnst, Node *type, char *name, Node *value); 
 // void enter(int pub, int typ, char *name);
 // void function(int pub, Node *type, char *name, Node *body);
-
+static int local_value;
 
 void function_burg(char *name, char* fpar, Node *stmt);
 void function_extern(char *func_name);
 void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
+
+static int dim(int type){
+	if(type==3) return (pfWORD==4 ? 2*pfWORD : pfWORD);
+	else return pfWORD;
+}
 %}
 
 %union {
@@ -117,7 +123,8 @@ decls	:                       { $$ = nilNode(NIL); }
 	;
 
 param	: tipo ID               { $$ = binNode(PARAM, $1, strNode(ID, $2));
-                                  IDnew($1->value.i, $2, 0);
+                                  IDnew($1->value.i, $2, local_value+=dim($1->value.i));
+																	printf("Param local value %d \n",local_value);
                                   if (IDlevel() == 1) fpar[++fpar[0]] = $1->value.i;
                                 }
 	;
@@ -245,6 +252,8 @@ void declare(int pub, int cnst, Node *type, char *name, Node *value)
 
 }
 void enter(int pub, int typ, char *name) {
+	//FIX ME futuramente IDnew da funcao
+	local_value= dim(typ); /*Reset local for func args*/
 	fpar = malloc(32); /* 31 arguments, at most */
 	fpar[0] = 0; /* argument count */
 	if (IDfind(name, (long*)IDtest) < 20)

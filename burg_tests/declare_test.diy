@@ -68,13 +68,16 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==
 ==
 ==
-==  prints("String index\n")
+  prints("String index\n")
     printi(a[1])
   println()
-==    prints(argv[1])
+    prints("Local Args\n")
+      printi(argc)
+  println()
+    prints(argv[0])
   println()
 ==    printi(argv[1][0])
-  println()
+==  println()
   ==entry := 0
 };
 

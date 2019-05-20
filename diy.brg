@@ -240,7 +240,7 @@ lv: INDEX_S(lvec,expr) 1 { fprintf(outfp, pfADD); ptr_loadchr=1; /*forward a cha
 lv: INDEX(lvec,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 
 %! falta os diversis type
-lv: LOCAL  1 {/*FIX FLOAT*/ fprintf(outfp, pfLOCAL, p->value.i * (pfWORD/4)); }
+lv: LOCAL  1 {/*FIX FLOAT*/ fprintf(outfp, pfLOCAL, p->value.i); }
 lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
 
 
