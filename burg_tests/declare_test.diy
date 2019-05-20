@@ -22,48 +22,58 @@ public void println()
 
 
 public integer entry (integer argc, string *argv, string *envp) {
-  prints(a)
-  prints("in line argument string!\n")
-  
-  prints("INteger Numbers\n")
-
-  printi(cnt)
+==  prints(a)
+==  prints("in line argument string!\n")
+==  
+==  prints("INteger Numbers\n")
+==
+==  printi(cnt)
+==  println()
+==  printi(cnt3+cnt)
+==  println()
+==  printi(zero)
+==  println()
+==
+==  printi(2019)
+==    println()
+==  printi(2019/10)
+==    println()
+==  printi(2019-50)
+==    println()
+==
+==
+==  prints("DOUBLE PRINT")
+==  println()
+==  printd(3.14+1)
+==    println()
+==  printd(2+r)
+==  println()
+==  printd(rzero)
+==  println()
+==
+==
+==
+==  prints("DOUBLE COMPARATIONS")
+==  println()
+==    printi(3=3.1)
+==  println()
+==    printi(0.1<0.2)
+==  println()
+==    printi(3.12>5)
+==  println()
+==    printi(1.1<=1.1)
+==  println()
+==    printi(cnt3<>r)
+==  println()
+==
+==
+==
+==  prints("String index\n")
+    printi(a[1])
   println()
-  printi(cnt3+cnt)
+==    prints(argv[1])
   println()
-  printi(zero)
-  println()
-
-  printi(2019)
-    println()
-  printi(2019/10)
-    println()
-  printi(2019-50)
-    println()
-
-
-  prints("DOUBLE PRINT")
-  println()
-  printd(3.14+1)
-    println()
-  printd(2+r)
-  println()
-  printd(rzero)
-  println()
-
-
-
-  prints("DOUBLE COMPARATIONS")
-  println()
-    printi(3=3.1)
-  println()
-    printi(0.1<0.2)
-  println()
-    printi(3.12>5)
-  println()
-    printi(1.1<=1.1)
-  println()
-    printi(cnt3<>r)
+==    printi(argv[1][0])
   println()
   ==entry := 0
 };

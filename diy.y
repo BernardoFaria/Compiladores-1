@@ -62,7 +62,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 %type <n> bloco decls param base stmt step args list end brk lv expr
 %type <i> ptr intp public
 
-%token LOCAL POSINC POSDEC PTR CALL START PARAM NIL
+%token LOCAL POSINC POSDEC PTR CALL START PARAM NIL INDEX_S
 %%
 begin   : file                 {externs();/*Put extends in the end*/}
 file	:                       
@@ -171,7 +171,8 @@ lv	: ID		{ long pos; int typ = IDfind($1, &pos);//LOCAL se for local, na pilha
                             if (typ / 10 != 1 && typ % 5 != 2) yyerror("not a pointer");
                             if (pos == 0) n = strNode(ID, $1);
                             else n = intNode(LOCAL, pos);
-                            $$ = binNode('[', n, $3);
+														if(typ==2)$$ = binNode(INDEX_S, n, $3);
+                            else $$ = binNode('[', n, $3);
 			    if (typ >= 10) typ -= 10;
                             else if (typ % 5 == 2) typ = 1;
 			    if (typ >= 5) typ -= 5;
