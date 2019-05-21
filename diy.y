@@ -27,7 +27,7 @@ void externs();
 // void enter(int pub, int typ, char *name);
 // void function(int pub, Node *type, char *name, Node *body);
 static int local_value;
-static int pos;
+static int func_pos;
 
 void function_burg(char *name, char* fpar, Node *stmt,Node *type);
 void function_extern(char *func_name);
@@ -126,7 +126,7 @@ decls	:                       { $$ = nilNode(NIL); }
 param	: tipo ID               { $$ = binNode(PARAM, $1, strNode(ID, $2));
 																	//if func arg, else local arg
                                   if (IDlevel() == 1) IDnew($1->value.i, $2, local_value+=dim($1->value.i)); 
-																	else IDnew($1->value.i, $2, pos-=dim($1->value.i)); 
+																	else IDnew($1->value.i, $2, func_pos-=dim($1->value.i)); 
 																	printf("Param local value %d \n",local_value);
                                   if (IDlevel() == 1) fpar[++fpar[0]] = $1->value.i;
                                 }
@@ -256,7 +256,9 @@ void enter(int pub, int typ, char *name) {
 	if (IDfind(name, (long*)IDtest) < 20)
 		IDnew(typ+20, name, (long)fpar);
 	IDpush();
-
+	
+	func_pos=0; /*define func_pos*/
+	//IDnew(typ, name, func_pos=dim(typ));/*criar variavel de retorno*/
 	local_value= dim(typ); /*Reset local for func args*/
 	///fpar[++fpar[0]] = typ;
 	if (typ != 4) IDnew(typ, name, local_value);  //variavel de retorno

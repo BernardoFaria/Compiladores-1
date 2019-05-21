@@ -96,9 +96,9 @@ int dim(int type);
 %include "y.tab.h"
 %%
 
-
-finit: FINIT(blocop, params)
 finit: FINIT(blocop, NIL)
+finit: FINIT(blocop, params)
+
 
 blocop: NIL     
 blocop: bloco
@@ -155,10 +155,21 @@ base: expr
 base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
-%! while alterado para o nosso codigo Verificar postfix VERIFY
+%! while for
 base:   WHILE(do,expr)   1 { brkcnt--; continuecnt--; fprintf(outfp, pfJZ, mklbl(LEFT_CHILD(p)->place)); fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place)); }
-do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1; }
-begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); continuelbl[++continuecnt] = lbl; brklbl[++brkcnt] = ++lbl;   }
+do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1;  fprintf(outfp, pfLABEL, mklbl(p->place + 1)); /*Label for continue to jump*/}
+begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl; continuelbl[++continuecnt] = ++lbl;   }
+
+
+%!base: FOR(in,END(stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
+%!in:IN(begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pfJZ, mklbl(p->place));/*jumps to the end*/}
+
+%!END(atr,for)
+%!atr:END(stmt,ATR(expr,lv))
+%!exp:LE(PTR(lv),step)
+%!begin_for: START
+
+
 
 %! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
 %!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
@@ -176,7 +187,7 @@ expr: ATR(assign,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr)
 %! More eficient falta local
 expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
 expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
-expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, p->value.s); }
+expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, LEFT_CHILD(p)->value.s);/*DOES SEG FAULT SINCE PTR DOESNT HAVE VALUE.S*/ }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
 expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); outstr(p->value.s); fprintf(outfp, pfTEXT pfADDR, mklbl(lbl));}
@@ -257,7 +268,7 @@ lv: INDEX_S(lvec,expr) 1 { fprintf(outfp, pfADD); ptr_loadchr=1; /*forward a cha
 lv: INDEX(lvec,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 
 %! falta os diversis type
-lv: LOCAL  1 {/*FIX FLOAT*/ fprintf(outfp, pfLOCAL, p->value.i); }
+lv: LOCAL  1 {fprintf(outfp, pfLOCAL, p->value.i); }
 lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
 
 
