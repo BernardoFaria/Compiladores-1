@@ -293,7 +293,7 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
 {
     int op = OP_LABEL(p);
     YYCONST char *tname = yytermname[op] ? yytermname[op] : "?";
-    fprintf(stderr, "0x%lx:%s matched %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost); 
+    /*fprintf(stderr, "0x%lx:%s matched %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost); */
     if (cost >= MAX_COST && bestcost >= MAX_COST) {
       extern char **yynames;
       fprintf(stderr, "0x%lx:%s NO MATCH %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost);
@@ -342,8 +342,14 @@ void function_burg(char *name, char* fpar, Node *stmt,Node *type)
   
   yyselect(stmt);
 
+  if(type->value.i==4){
+    fprintf(outfp,pfLEAVE pfRET);
+  }else if(type->value.i==3){
+    fprintf(outfp, pfLOCAL pfLOAD2 pfDPOP pfLEAVE pfRET,-dim(type->value.i));
+  }else{
 
-  fprintf(outfp, pfLOCAL pfPOP pfLEAVE pfRET,dim(type->value.i)); /* just in case ... */
+    fprintf(outfp, pfLOCAL pfLOAD pfPOP pfLEAVE pfRET,-dim(type->value.i)); /* just in case ... */
+  }
   freeNode(stmt);
 
   for (i = 0; i < extcnt; i++) /*Remove extern case public forward declaration*/

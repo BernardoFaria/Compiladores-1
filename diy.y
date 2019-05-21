@@ -257,11 +257,10 @@ void enter(int pub, int typ, char *name) {
 		IDnew(typ+20, name, (long)fpar);
 	IDpush();
 	
-	func_pos=0; /*define func_pos*/
-	//IDnew(typ, name, func_pos=dim(typ));/*criar variavel de retorno*/
-	local_value= dim(typ); /*Reset local for func args*/
+	func_pos=-dim(typ); /*define func_pos com valor de retorno*/
+	local_value= dim(typ); /*Reset local for func args,with space for the return*/
 	///fpar[++fpar[0]] = typ;
-	if (typ != 4) IDnew(typ, name, local_value);  //variavel de retorno
+	if (typ != 4) IDnew(typ, name, func_pos);  //variavel de retorno
 }
 
 int checkargs(char *name, Node *args) {
