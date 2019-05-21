@@ -44,6 +44,7 @@ static char *mkfunc(char *s) {
 }
 
 static int only_integer(Node *p){
+  printf("lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
   return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
 }
 
@@ -143,10 +144,10 @@ args:   NIL       { p->place = 0; }
 arg:    expr        1 { p->place = 1; }
 
 
-param: PARAM(tipo,ID)   1   {}
+param: PARAM(tipo,ID)   
 
 decls: NIL
-decls: END(decls,param) 1   {}
+decls: DECLS(decls,param)  
 
 
 base: NIL
@@ -160,9 +161,13 @@ base:   WHILE(do,expr)   1 { brkcnt--; continuecnt--; fprintf(outfp, pfJZ, mklbl
 do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1;  fprintf(outfp, pfLABEL, mklbl(p->place + 1)); /*Label for continue to jump*/}
 begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl; continuelbl[++continuecnt] = ++lbl;   }
 
+base: END(expr,for)
+for: FOR(in,END(for_stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
+in:IN(for_begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pfJZ, mklbl(p->place));/*jumps to the end*/continuelbl[++continuecnt] =  ++lbl; }
 
-%!base: FOR(in,END(stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
-%!in:IN(begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pfJZ, mklbl(p->place));/*jumps to the end*/}
+for_stmt:stmt                   1 {fprintf(outfp, pfLABEL, mklbl(continuelbl[continuecnt]));}
+for_begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl;   }
+
 
 %!END(atr,for)
 %!atr:END(stmt,ATR(expr,lv))
@@ -288,7 +293,7 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
 {
     int op = OP_LABEL(p);
     YYCONST char *tname = yytermname[op] ? yytermname[op] : "?";
-    /* fprintf(stderr, "0x%lx:%s matched %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost); */
+    fprintf(stderr, "0x%lx:%s matched %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost); 
     if (cost >= MAX_COST && bestcost >= MAX_COST) {
       extern char **yynames;
       fprintf(stderr, "0x%lx:%s NO MATCH %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost);

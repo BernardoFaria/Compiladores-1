@@ -38,59 +38,91 @@ public void println()
 public integer entry (integer argc, string *argv, string *envp) {
   integer local
   integer i
+  integer j
   
-  printi(local)
-  println()
-  local:=10-local
-  printi(local)
-  println() 
+==  printi(local)
+==  println()
+==  local:=10-local
+==  printi(local)
+==  println() 
   
-
-
-  prints("DO WHILE\n")
-  do{
-    printi(local)
+  ==prints("FOR\n")
+==  prints("FOR\n")
+==  i:=0
+  for i in 0 upto 10 step 1 do{
+    printi(i)
     prints("->")
-    local:=local-1
-  } while local > 0
-
-
+    continue;
+  }
   i:=0
-  do{
+  j:=0
+  prints("NEW FOR")
 
-    if i >= 2 then {
-      prints("fim")
-      break;
+  for i in 0 upto 10 step 1 do{
+    printi(i)
+    if i =0 then {
+      for j in 0 upto 10 step 1 do{
+        prints("continue")
+        if j = 2 then continue 2;
+      }
     }
 
-    do{
-      i:=i+1
-      if i < 2 then {
-        prints("continue1\n")
-        continue;
+    if i =1 then{
+      for j in 0 upto 10 step 1 do{
+        prints("break")
+        if j = 2 then break 2;
+
       }
-      prints("deve imprimir apenas 1 vez com 2\n")
-      printi(i)
-      do {
-        prints("break 2\n")
-        break 2;
-      } while 1
-      prints("nem isto")
-    } while 1
+    }
 
-    do{
-      do{
-        prints("continue 3\n")
-        continue 3;
-      } while 1
-    } while 1
+    printi(i)
+    prints("->")
+  }
 
-    prints("nao imprimir")
-
-  } while 1
-
-
-  println()
+==  prints("DO WHILE\n")
+==  do{
+==    printi(local)
+==    prints("->")
+==    local:=local-1
+==  } while local > 0
+==
+==
+==  i:=0
+==  do{
+==
+==    if i >= 2 then {
+==      prints("fim")
+==      break;
+==    }
+==
+==    do{
+==      i:=i+1
+==      if i < 2 then {
+==        prints("continue1\n")
+==        continue;
+==      }
+==      prints("deve imprimir apenas 1 vez com 2\n")
+==      printi(i)
+==      do {
+==        prints("break 2\n")
+==        break 2;
+==      } while 1
+==      prints("nem isto")
+==    } while 1
+==
+==    do{
+==      do{
+==        prints("continue 3\n")
+==        continue 3;
+==      } while 1
+==    } while 1
+==
+==    prints("nao imprimir")
+==
+==  } while 1
+==
+==
+==  println()
 ==  prints(a)
 ==  prints("in line argument string!\n")
 ==  
@@ -110,16 +142,16 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==
 ==    
 
-      if argc < 2 then{
-        prints("argc less than 2\n")
-      } 
-  else prints("argc BIGGER than 2\n")
-
-    printi(argc)
-    println()
-    argc:=42
-    printi(argc)
-    println()
+==      if argc < 2 then{
+==        prints("argc less than 2\n")
+==      } 
+==  else prints("argc BIGGER than 2\n")
+==
+==    printi(argc)
+==    println()
+==    argc:=42
+==    printi(argc)
+==    println()
 ==
 ==  printi(2019)
 ==    println()
@@ -148,7 +180,11 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==  println()
 ==    printi(3.12>5)
 ==  println()
-==    printi(1.1<=1.1)
+==    printi(cnt3)
+==  println()
+==    printi(cnt3<=1.1)
+==  println()
+==    printi(i<1)
 ==  println()
 ==    printi(cnt3<>r)
 ==  println()

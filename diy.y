@@ -69,7 +69,7 @@ int dim(int type){
 %type <n> bloco decls param base stmt step args list end brk lv expr
 %type <i> ptr intp public
 
-%token LOCAL POSINC POSDEC PTR CALL START PARAM NIL INDEX_S
+%token LOCAL POSINC POSDEC PTR CALL START PARAM NIL INDEX_S DECLS
 %%
 begin   : file                 {externs();/*Put extends in the end*/}
 file	:                       
@@ -120,7 +120,7 @@ bloco	: '{' { IDpush(); } decls list end '}'    { $$ = binNode('{', $5->attrib!=
 	;
 
 decls	:                       { $$ = nilNode(NIL); }
-	| decls param ';'       { $$ = binNode(';', $1, $2); }
+	| decls param ';'       { $$ = binNode(DECLS, $1, $2); }
 	;
 
 param	: tipo ID               { $$ = binNode(PARAM, $1, strNode(ID, $2));
@@ -138,8 +138,8 @@ stmt	: base
 
 base	: ';'                   { $$ = nilNode(NIL); }
 	| DO { ncicl++; } stmt WHILE expr ';' { $$ = binNode(WHILE, binNode(DO, nilNode(START), $3), $5); ncicl--; }
-	| FOR lv IN expr UPTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(LE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('+', uniNode(PTR, $2), $7), $2)))); ncicl--; }
-	| FOR lv IN expr DOWNTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(GE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('-', uniNode(PTR, $2), $7), $2)))); ncicl--; }
+	| FOR lv IN expr UPTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(LE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('+', uniNode(PTR, $2), $7), $2)))); ncicl--; LEFT_CHILD(RIGHT_CHILD(LEFT_CHILD(RIGHT_CHILD($$))))->info=$2->info; LEFT_CHILD(LEFT_CHILD(RIGHT_CHILD(RIGHT_CHILD(RIGHT_CHILD($$)))))->info=$2->info; }
+	| FOR lv IN expr DOWNTO expr step DO { ncicl++; } stmt       { $$ = binNode(';', binNode(ATR, $4, $2), binNode(FOR, binNode(IN, nilNode(START), binNode(GE, uniNode(PTR, $2), $6)), binNode(';', $10, binNode(ATR, binNode('-', uniNode(PTR, $2), $7), $2)))); ncicl--; LEFT_CHILD(RIGHT_CHILD(LEFT_CHILD(RIGHT_CHILD($$))))->info=$2->info; LEFT_CHILD(LEFT_CHILD(RIGHT_CHILD(RIGHT_CHILD(RIGHT_CHILD($$)))))->info=$2->info;}
 	| IF expr THEN stmt %prec IFX    { $$ = binNode(IF, $2, $4); }
 	| IF expr THEN stmt ELSE stmt    { $$ = binNode(ELSE, binNode(IF, $2, $4), $6); }
 	| expr ';'              { $$ = $1; }
