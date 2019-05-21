@@ -183,6 +183,11 @@ for_begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl
 %!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
 
 
+expr: INCR(lv)                 1   {fprintf(outfp, pfDUP pfINCR pfLOAD, 1);}
+expr: DECR(lv)                 1   {fprintf(outfp, pfDUP pfDECR pfLOAD, 1);}
+expr: POSINC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, 1); }
+expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1);}
+
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
