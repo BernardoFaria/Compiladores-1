@@ -35,6 +35,11 @@ public void println()
 ==   println()
 == };
 
+==public integer test2(){
+==  integer i;
+==  test2:=42
+==};
+
 public integer entry (integer argc, string *argv, string *envp) {
   integer local
   integer i
@@ -49,35 +54,35 @@ public integer entry (integer argc, string *argv, string *envp) {
   ==prints("FOR\n")
 ==  prints("FOR\n")
 ==  i:=0
-  for i in 0 upto 10 step 1 do{
-    printi(i)
-    prints("->")
-    continue;
-  }
-  i:=0
-  j:=0
-  prints("NEW FOR")
-
-  for i in 0 upto 10 step 1 do{
-    printi(i)
-    if i =0 then {
-      for j in 0 upto 10 step 1 do{
-        prints("continue")
-        if j = 2 then continue 2;
-      }
-    }
-
-    if i =1 then{
-      for j in 0 upto 10 step 1 do{
-        prints("break")
-        if j = 2 then break 2;
-
-      }
-    }
-
-    printi(i)
-    prints("->")
-  }
+==  for i in 0 upto 10 step 1 do{
+==    printi(i)
+==    prints("->")
+==    continue;
+==  }
+==  i:=0
+==  j:=0
+==  prints("NEW FOR")
+==
+==  for i in 0 upto 10 step 1 do{
+==    printi(i)
+==    if i =0 then {
+==      for j in 0 upto 10 step 1 do{
+==        prints("continue")
+==        if j = 2 then continue 2;
+==      }
+==    }
+==
+==    if i =1 then{
+==      for j in 0 upto 10 step 1 do{
+==        prints("break")
+==        if j = 2 then break 2;
+==
+==      }
+==    }
+==
+==    printi(i)
+==    prints("->")
+==  }
 
 ==  prints("DO WHILE\n")
 ==  do{
@@ -190,6 +195,18 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==  println()
 ==
 ==
+
+    prints("LOGIC\nNOT\n")
+    printi(~10)
+    prints("\nAND\n")
+    printi(10&20)
+    println()
+    printi(0&20)
+    prints("\nOR\n")
+    printi(0|20)
+    println()
+    printi(0|0)
+
 ==
 ==  prints("String index\n")
 ==    printi(a[1])
@@ -209,8 +226,10 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==  println()
 
 ==  test(2,3);
-
-==  entry := 0
+==  prints("\nRETURN FUNC\n")
+==  printi(test2())
+==  local:=1
+  entry := 0
 };
 
 

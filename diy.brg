@@ -242,9 +242,9 @@ expr:   UMINUS(expr)    only_real1 { fprintf(outfp, pfDNEG); }
 
 expr:   NOT(expr)   only_integer1 { fprintf(outfp, pfIMM pfEQ, 0); }
 
-expr:   AND(and,expr)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+expr:   AND(and,expr)   1 { fprintf(outfp, pfLABEL pfIMM pfNE, mklbl(LEFT_CHILD(p)->place), 0); }
 and:    expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJZ pfTRASH, mklbl(p->place), pfWORD); }
-expr:   OR(or,expr) 1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
+expr:   OR(or,expr) 1 { fprintf(outfp, pfLABEL pfIMM pfNE, mklbl(LEFT_CHILD(p)->place), 0); }
 or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(p->place), pfWORD); }
 
 %! isto faz em comment(tb comment in B)
