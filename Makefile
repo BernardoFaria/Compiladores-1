@@ -4,6 +4,7 @@ EXT=diy # file extension: .$(EXT)
 LIB=lib # compiler library directory
 UTIL=util # compiler library: lib$(LIB).a
 RUN=run # runtime directory
+DIY_RUN=diy_run
 EXS=exs # examples directory
 CC=gcc
 CFLAGS=-g -DYYDEBUG
@@ -26,5 +27,6 @@ build::
 clean::
 	make -C $(LIB) clean
 	make -C $(RUN) clean
+	make -C $(DIY_RUN) clean
 	make -C $(EXS) clean
 	rm -f *.o $(LANG) lex.yy.c y.tab.c y.tab.h y.output yyselect.c *.asm *~

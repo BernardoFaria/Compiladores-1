@@ -3,25 +3,24 @@ COMP=../diy # compiler
 EXT=diy # file extension: .$(EXT)
 LIB=diy # runtime library: lib$(LIB).a
 RUN=../run # runtime directory
-DIY_RUN=../diy_run # diy runtime dir
 AS=nasm -felf32 # assembler command
 LD=ld -melf_i386 # loader command
 
-SRC=hello.diy ack.diy mean.diy factorial.diy 
+RUNTIME=lib$(LIB).a # stand-alone runtime
+SRC=rand.diy recurs.diy string.diy 
 EXE=$(SRC:%.diy=%)
 
-all:: compiler runtime $(EXE)
+all:: compiler $(EXE) cp_run
 
 compiler::
 	make -C ..
 
-runtime::
-	make -C $(RUN)
-
 %:%.$(EXT)
-	$(COMP) $<
+	$(COMP) -trace $<
 	$(AS) $*.asm -o $*.o
-	$(LD) -o $@ $*.o -L$(RUN) -L$(DIY_RUN) -l$(LIB)
+
+cp_run::
+	cp *.o $(RUN)
 
 clean::
 	rm -f *.o *.asm *.s *~ $(EXE)
