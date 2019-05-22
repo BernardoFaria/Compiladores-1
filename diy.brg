@@ -227,11 +227,12 @@ expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(o
 expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr|| LEFT_CHILD(LEFT_CHILD(p))->info==2) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
-convert_real: expr		1 {fprintf(outfp, pfI2D); }
-convert_int: expr		1 {fprintf(outfp, pfD2I); }
+assign: expr		1 { if(p->info==3) fprintf(outfp, pfDUP2); else fprintf(outfp, pfDUP); }
+convert_real: expr		1 {fprintf(outfp, pfI2D pfDUP2); }
+convert_int: expr		1 {fprintf(outfp, pfD2I pfDUP); }
 
 %! string:=0 e string:= pointer nao testado
-expr: ATR(expr,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
+expr: ATR(assign,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
                                         printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
 expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
                                         printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
