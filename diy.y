@@ -257,7 +257,7 @@ void enter(int pub, int typ, char *name) {
 		IDnew(typ+20, name, (long)fpar);
 	IDpush();
 	
-	func_pos=-dim(1); /*define func_pos com valor de retorno,ha de ser um int pointeiro*/
+	func_pos=-dim(typ); /*define func_pos com valor de retorno,ha de ser um int pointeiro*/
 	local_value= dim(typ); /*Reset local for func args,with space for the return*/
 	///fpar[++fpar[0]] = typ;
 	if (typ != 4) IDnew(typ, name, func_pos);  //variavel de retorno
@@ -312,8 +312,9 @@ int nostring(Node *arg1, Node *arg2) {
 int intonly(Node *arg, int novar) {
 	if (arg->info % 5 != 1)
 		yyerror("only integers can be used");
-	if (arg->info % 10 > 5)
-		yyerror("argument is constant");
+		//verify the problem with argument being constant
+	// if (arg->info % 10 > 5)
+	// 	yyerror("argument is constant");
 	return 1;
 }
 

@@ -70,6 +70,9 @@ static int only_string(Node *p){
 //   return p->info != 2 ? 1 : MAX_COST; 
 // }
 
+static int only_integer_left(Node *p){
+  return LEFT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+}
 
 static int only_integer1(Node *p){
   return p->info == 1 ? 1 : MAX_COST; 
@@ -138,10 +141,10 @@ params: param               1   {}
 
 
 
-args:   ARGS(arg,args)     1  { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
+args:   ARGS(arg,args)       { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
 args:   NIL       { p->place = 0; }
 %! nao serve de nada de momento
-arg:    expr        1 { p->place = 1; }
+arg:    expr        { p->place = dim(p->info); printf("arg info value %d\n",(int)p->place);}
 
 
 param: PARAM(tipo,ID)   
@@ -194,10 +197,10 @@ expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
 assign: expr		1 { /*fprintf(outfp, pfDUP);*/ }
 
-expr: ATR(assign,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else fprintf(outfp, pfSTORE); }
+expr: ATR(expr,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else fprintf(outfp, pfSTORE); }
 %! More eficient falta local
-expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
-expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
+%!expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
+%!expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
 expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, LEFT_CHILD(p)->value.s);/*DOES SEG FAULT SINCE PTR DOESNT HAVE VALUE.S*/ }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
@@ -234,14 +237,16 @@ expr:   GT(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP 
 expr:   GE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfGE, 0); }
 
 
-%!test this in future
-expr:   EQ(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfEQ, "_strcmp", 2 * (pfWORD/4), 0); }
-expr:   NE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfNE, "_strcmp", 2 * (pfWORD/4), 0); }
-expr:   LT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLT, "_strcmp", 2 * (pfWORD/4), 0); }
-expr:   LE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLE, "_strcmp", 2 * (pfWORD/4), 0); }
-expr:   GT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGT, "_strcmp", 2 * (pfWORD/4), 0); }
-expr:   GE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGE, "_strcmp", 2 * (pfWORD/4), 0); }
+%!test this in future fazer link, check trash
+expr:   EQ(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfEQ, "_strcmp", 2 * pfWORD, 0); }
+expr:   NE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfNE, "_strcmp", 2 * pfWORD, 0); }
+expr:   LT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLT, "_strcmp", 2 * pfWORD, 0); }
+expr:   LE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLE, "_strcmp", 2 * pfWORD, 0); }
+expr:   GT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGT, "_strcmp", 2 * pfWORD, 0); }
+expr:   GE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGE, "_strcmp", 2 * pfWORD, 0); }
 
+%!test factorial falta fazer o link
+expr:   FACT(expr)      only_integer_left { fprintf(outfp,pfCALL pfTRASH pfDPUSH, "_factorial", pfWORD);}
 
 expr:   UMINUS(expr)    only_integer1 { fprintf(outfp, pfNEG); }
 expr:   UMINUS(expr)    only_real1 { fprintf(outfp, pfDNEG); }
@@ -255,7 +260,9 @@ or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(
 
 %! isto faz em comment(tb comment in B)
 %!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
-expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH pfPUSH, mkfunc(LEFT_CHILD(p)->value.s), (int)(pfWORD*(RIGHT_CHILD(p)->place))); }
+expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH, mkfunc(LEFT_CHILD(p)->value.s), (int)((RIGHT_CHILD(p)->place))); 
+                            int typ =IDfind(LEFT_CHILD(p)->value.s, NULL) % 20; if(typ/10==1||typ==1||typ==2) fprintf(outfp,pfPUSH); else if(typ==3) fprintf(outfp,pfDPUSH);
+                            printf("FUNC CALL: %s TYPE: %d ARGS TRASH:%d\n",LEFT_CHILD(p)->value.s,typ,(int)((RIGHT_CHILD(p)->place)));}
 
 
 %! if-else
@@ -347,6 +354,8 @@ void function_burg(char *name, char* fpar, Node *stmt,Node *type)
   fprintf(outfp, pfTEXT pfALIGN pfGLOBL pfLABEL pfENTER, mkfunc(name), pfFUNC, mkfunc(name), enter);
   
   yyselect(stmt);
+
+  printf("return type %d dim %d\n",type->value.i,dim(type->value.i));
 
   if(type->value.i==4){
     fprintf(outfp,pfLEAVE pfRET);
