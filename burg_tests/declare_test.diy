@@ -44,6 +44,7 @@ public integer entry (integer argc, string *argv, string *envp) {
   integer local
   integer i
   integer j
+  integer* k
   
 ==  printi(local)
 ==  println()
@@ -196,16 +197,33 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==
 ==
 
-    prints("LOGIC\nNOT\n")
-    printi(~10)
-    prints("\nAND\n")
-    printi(10&20)
+==    prints("LOGIC\nNOT\n")
+==    printi(~10)
+==    prints("\nAND\n")
+==    printi(10&20)
+==    println()
+==    printi(0&20)
+==    prints("\nOR\n")
+==    printi(0|20)
+==    println()
+==    printi(0|0)
+
+==      i:=0
+==      prints("INC DECR\n")
+==      printi(i++)
+==      printi(i)
+==      printi(++i)
+==      printi(--i)
+==      printi(i--)
+==      printi(i)
+
+
+    prints("INT POINTER\n")
+    k:=&argc
+    printi(*k)
+    prints("=")
+    printi(argc)
     println()
-    printi(0&20)
-    prints("\nOR\n")
-    printi(0|20)
-    println()
-    printi(0|0)
 
 ==
 ==  prints("String index\n")

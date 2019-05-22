@@ -92,7 +92,7 @@ static void convert_child_real(Node*p){
 int dim(int type);
 
 %}
-%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#'
+%term END=';' ADD='+' SUB='-' MUL='*' DIV='/' MOD='%' LT='<' GT='>' EQ='=' OR='|' AND='&' INDEX='[' PARAMS=',' ALLOC='#' FACT='!'
 %term FINIT='(' BLOCO='{'
 %include "y.tab.h"
 %%
@@ -189,6 +189,7 @@ expr: POSINC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, 1)
 expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1);}
 
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
+expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
 assign: expr		1 { /*fprintf(outfp, pfDUP);*/ }
