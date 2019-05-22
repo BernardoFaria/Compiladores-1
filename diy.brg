@@ -440,7 +440,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
   if(pub) fprintf(outfp, pfGLOBL, name, pfOBJ);
 
   if(cnst) fprintf(outfp, pfRODATA);
-  //PROBLEM WITH FOWARD INITIALIZATIONS(since is only a p)
+  //PROBLEM WITH FOWARD INITIALIZATIONS(since is only a pointer)
   // else if(!value || (type->attrib == INTEGER &&  value->value.i==0) || (type->attrib == NUMBER &&  value->value.r==0) ){
   //   fprintf(outfp, pfBSS); //although if has no value cant be const
   //   fprintf(outfp,pfALIGN pfLABEL, name); //isto e bue manhoso......
@@ -467,12 +467,17 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
       case STRING:{
       
         char *l = mklbl(++lbl);
+        fprintf(outfp, pfDATA pfID, l); // perceber isto(penso q seja associar um endereco a rodata)
 
-        fprintf(outfp, pfRODATA pfALIGN pfLABEL, l);
+        if(value->info % 5==1) fprintf(outfp, pfRODATA); //se string:= const, nao podemos alterar strings
+        else fprintf(outfp,pfDATA);//podemos alterar caracteres
+
+
+        fprintf(outfp, pfALIGN pfLABEL, l);
 
         outstr(value->value.s);
 
-        fprintf(outfp, pfDATA pfID, l); //FIXME perceber isto(penso q seja associar um endereco a rodata)
+
 
         break;
       }
@@ -484,8 +489,29 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
     }
     
   }else{
-      //not initiated,not public
-      fprintf(outfp, pfBYTE, pfWORD * siz);
+      //not initiated,zeroing FIXME
+      // fprintf(outfp, pfBYTE, pfWORD * siz);
+    switch (type->attrib)
+    {
+      case INTEGER:{
+         fprintf(outfp,pfINTEGER, 0);
+        break;
+      }
+      case STRING:{
+      
+        char *l = mklbl(++lbl);
+        fprintf(outfp, pfDATA pfID, l); // perceber isto(penso q seja associar um endereco a rodata)
+        fprintf(outfp, pfDATA pfALIGN pfLABEL, l);
+
+        outstr("\0");
+        break;
+      }
+
+      case NUMBER:{
+        fprintf(outfp,pfDOUBLE, 0.0);
+        break;
+      }
+      }
   }
 
 
