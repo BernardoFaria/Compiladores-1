@@ -29,7 +29,7 @@ void externs();
 static int local_value;
 static int func_pos;
 
-void function_burg(char *name, char* fpar, Node *stmt,Node *type);
+void function_burg(char *name, int enter, Node *stmt,Node *type);
 void function_extern(char *func_name);
 void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 
@@ -341,7 +341,7 @@ void function(int pub, Node *type, char *name, Node *body)
 		if (fwd > 40) yyerror("duplicate function");
 		else IDreplace(fwd+40, name, par);
 
-		function_burg(name, fpar, body,type);
+		function_burg(name, -func_pos, body,type);
 	}else if(pub){/*public forward declaration(external function)*/
 		if (trace) printNode(body, 0, yynames);
 		function_extern(name);

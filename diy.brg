@@ -86,6 +86,16 @@ static int has_real(Node *p){
   return LEFT_CHILD(p)->info == 3 || RIGHT_CHILD(p)->info == 3 ? 1 : MAX_COST; 
 }
 
+static int same_type(Node *p){
+  return LEFT_CHILD(p)->info == RIGHT_CHILD(p)->info ? 1 : MAX_COST; 
+}
+
+static int left_real_right_int(Node *p){
+  return LEFT_CHILD(p)->info == 3 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+}
+static int left_int_right_real(Node *p){
+  return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 3 ? 1 : MAX_COST; 
+}
 
 static void convert_child_real(Node*p){
   if(LEFT_CHILD(p)->info == 1) fprintf(outfp,pfDPOP pfI2D pfDPUSH); 
@@ -195,12 +205,18 @@ expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(o
 expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
-assign: expr		1 { /*fprintf(outfp, pfDUP);*/ }
+convert_real: expr		1 {fprintf(outfp, pfI2D); }
+convert_int: expr		1 {fprintf(outfp, pfD2I); }
 
-expr: ATR(expr,lv)      1   {printf("ASSG ptr%d",ptr_loadchr); if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else fprintf(outfp, pfSTORE); }
+expr: ATR(expr,lv)      same_type   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
+                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
+expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
+                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
+expr: ATR(convert_int,lv)      left_real_right_int   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
+                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
 %! More eficient falta local
-%!expr:	ATR(expr,LOCAL)	1 { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
-%!expr:	ATR(expr,ID)	1 { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
+%!expr:	ATR(expr,LOCAL)	same_type { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
+%!expr:	ATR(expr,ID)	same_type { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
 expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, LEFT_CHILD(p)->value.s);/*DOES SEG FAULT SINCE PTR DOESNT HAVE VALUE.S*/ }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
@@ -280,7 +296,7 @@ stmt: brk
 
 
 %! left values
-lvec:	lv		1 { fprintf(outfp, pfLOAD); /*LOAD the rodata addr for the array*/}
+lvec:	lv		1 { fprintf(outfp, pfLOAD); /*LOAD the rodata addr for the array, it cAN ONLY BE INT I ASSUME*/}
 lv: INDEX_S(lvec,expr) 1 { fprintf(outfp, pfADD); ptr_loadchr=1; /*forward a char, 1 byte*/}
 
 lv: INDEX(lvec,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
@@ -339,10 +355,10 @@ int calculate_enter(char* fpar,int type){
 }
 
 
-void function_burg(char *name, char* fpar, Node *stmt,Node *type)
+void function_burg(char *name, int enter, Node *stmt,Node *type)
 {
   int i;
-  int enter =calculate_enter(fpar,type->value.i);
+  // int enter =calculate_enter(fpar,type->value.i);
   func_name=dupstr(name);
   printf("\tENTER VALUE%d\n",enter);
 
