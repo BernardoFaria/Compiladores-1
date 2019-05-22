@@ -14,6 +14,9 @@ static long brklbl[20], brkcnt; /* break labels */
 static long continuelbl[20], continuecnt; /* break labels */
 
 
+//extern flags
+int fact_flag,strcmp_flag;
+
 static char *extrns[100]; /* emit externs at the end only */
 static int extcnt;
 
@@ -48,6 +51,13 @@ static int only_integer(Node *p){
   return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
 }
 
+static int only_integer_or_string(Node *p){
+  int l=LEFT_CHILD(p)->info;
+  int r = RIGHT_CHILD(p)->info ;
+  return  (l== 1||l==2) && (r== 1||r==2) ? 1 : MAX_COST; 
+}
+
+
 static int only_string(Node *p){
   return LEFT_CHILD(p)->info == 2 && RIGHT_CHILD(p)->info == 2 ? 1 : MAX_COST; 
 }
@@ -70,6 +80,8 @@ static int only_string(Node *p){
 //   return p->info != 2 ? 1 : MAX_COST; 
 // }
 
+
+
 static int only_integer_left(Node *p){
   return LEFT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
 }
@@ -87,8 +99,18 @@ static int has_real(Node *p){
 }
 
 static int same_type(Node *p){
+  printf("SAME lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
   return LEFT_CHILD(p)->info == RIGHT_CHILD(p)->info ? 1 : MAX_COST; 
 }
+
+static int atr_check_no_changes(Node *p){
+  printf("SAME lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
+  if(LEFT_CHILD(p)->info == RIGHT_CHILD(p)->info) return 1;
+  if(LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info==2) return 1; //string:=0 manhoso
+  if(LEFT_CHILD(p)->info == 11 && RIGHT_CHILD(p)->info==2) return 1; //string:=int*
+  return MAX_COST; 
+}
+
 
 static int left_real_right_int(Node *p){
   return LEFT_CHILD(p)->info == 3 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
@@ -202,13 +224,14 @@ expr: POSINC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, 1)
 expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1);}
 
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
-expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
+expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr|| LEFT_CHILD(LEFT_CHILD(p))->info==2) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
 
 convert_real: expr		1 {fprintf(outfp, pfI2D); }
 convert_int: expr		1 {fprintf(outfp, pfD2I); }
 
-expr: ATR(expr,lv)      same_type   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
+%! string:=0 e string:= pointer nao testado
+expr: ATR(expr,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
                                         printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
 expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
                                         printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
@@ -238,12 +261,13 @@ expr:   DIV(expr,expr)  has_real { convert_child_real(p); fprintf(outfp, pfDDIV)
 expr:   MOD(expr,expr)  only_integer { fprintf(outfp, pfMOD); }
 
 
-expr:   EQ(expr,expr)   only_integer { fprintf(outfp, pfEQ); }
-expr:   NE(expr,expr)   only_integer { fprintf(outfp, pfNE); }
-expr:   LT(expr,expr)   only_integer { fprintf(outfp, pfLT); }
-expr:   LE(expr,expr)   only_integer { fprintf(outfp, pfLE); }
-expr:   GT(expr,expr)   only_integer { fprintf(outfp, pfGT); }
-expr:   GE(expr,expr)   only_integer { fprintf(outfp, pfGE); }
+%! podemos fazer comparacoes com o pointeiro da string... Ya nao e manhoso...
+expr:   EQ(expr,expr)   only_integer_or_string { fprintf(outfp, pfEQ); }
+expr:   NE(expr,expr)   only_integer_or_string { fprintf(outfp, pfNE); }
+expr:   LT(expr,expr)   only_integer_or_string { fprintf(outfp, pfLT); }
+expr:   LE(expr,expr)   only_integer_or_string { fprintf(outfp, pfLE); }
+expr:   GT(expr,expr)   only_integer_or_string { fprintf(outfp, pfGT); }
+expr:   GE(expr,expr)   only_integer_or_string { fprintf(outfp, pfGE); }
 
 expr:   EQ(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfEQ, 0); }
 expr:   NE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP pfIMM pfNE, 0); }
@@ -254,15 +278,18 @@ expr:   GE(expr,expr)   has_real { convert_child_real(p); fprintf(outfp, pfDCMP 
 
 
 %!test this in future fazer link, check trash
-expr:   EQ(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfEQ, "_strcmp", 2 * pfWORD, 0); }
-expr:   NE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfNE, "_strcmp", 2 * pfWORD, 0); }
-expr:   LT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLT, "_strcmp", 2 * pfWORD, 0); }
-expr:   LE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLE, "_strcmp", 2 * pfWORD, 0); }
-expr:   GT(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGT, "_strcmp", 2 * pfWORD, 0); }
-expr:   GE(expr,expr)   only_string { fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGE, "_strcmp", 2 * pfWORD, 0); }
+expr:   EQ(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfEQ, "_strcmp", 2 * pfWORD, 0); }
+expr:   NE(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfNE, "_strcmp", 2 * pfWORD, 0); }
+expr:   LT(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLT, "_strcmp", 2 * pfWORD, 0); }
+expr:   LE(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfLE, "_strcmp", 2 * pfWORD, 0); }
+expr:   GT(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGT, "_strcmp", 2 * pfWORD, 0); }
+expr:   GE(expr,expr)   only_string {strcmp_flag=1; fprintf(outfp,pfCALL pfTRASH pfPUSH pfIMM pfGE, "_strcmp", 2 * pfWORD, 0); }
+
+%! string pointer compare.....
+
 
 %!test factorial falta fazer o link
-expr:   FACT(expr)      only_integer_left { fprintf(outfp,pfCALL pfTRASH pfDPUSH, "_factorial", pfWORD);}
+expr:   FACT(expr)      only_integer_left {fact_flag=1; fprintf(outfp,pfCALL pfTRASH pfDPUSH, "_factorial", pfWORD);}
 
 expr:   UMINUS(expr)    only_integer1 { fprintf(outfp, pfNEG); }
 expr:   UMINUS(expr)    only_real1 { fprintf(outfp, pfDNEG); }
@@ -334,6 +361,10 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
 
 void externs()
 {
+    /*needed for language purposes*/
+    if(fact_flag) extrns[extcnt++] = dupstr("_factorial");
+    if(strcmp_flag) extrns[extcnt++] = dupstr("_strcmp");
+
     int i;
     for (i = 0; i < extcnt; i++)
         if (extrns[i])
