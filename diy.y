@@ -35,6 +35,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value);
 
 int dim(int type){
 	if(type==3) return (pfWORD==4 ? 2*pfWORD : pfWORD);
+	else if(type==4) return 0;
 	else return pfWORD;
 }
 %}
@@ -258,7 +259,7 @@ void enter(int pub, int typ, char *name) {
 	IDpush();
 	
 	func_pos=-dim(typ); /*define func_pos com valor de retorno,ha de ser um int pointeiro*/
-	local_value= dim(typ); /*Reset local for func args,with space for the return*/
+	local_value= dim(1); /*Reset local for func args,with space for the return(always a pointer*/
 	///fpar[++fpar[0]] = typ;
 	if (typ != 4) IDnew(typ, name, func_pos);  //variavel de retorno
 }

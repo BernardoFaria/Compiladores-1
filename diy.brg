@@ -111,6 +111,12 @@ static int atr_check_no_changes(Node *p){
   return MAX_COST; 
 }
 
+// static int atr_string(Node *p){
+//   printf("ATR lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
+//   if(LEFT_CHILD(p)->info == 11 && RIGHT_CHILD(p)->info==2) return 1;
+//     return MAX_COST; 
+//   // return LEFT_CHILD(p)->info == 2 || RIGHT_CHILD(p)->info==2 ? 1 : MAX_COST; 
+// }
 
 static int left_real_right_int(Node *p){
   return LEFT_CHILD(p)->info == 3 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
@@ -225,7 +231,7 @@ expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1)
 
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr|| LEFT_CHILD(LEFT_CHILD(p))->info==2) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
-expr: REF(lv)    { /* No code, but keep PTR to avoid missing LOADs */ }
+expr: REF(lv)    { ptr_loadchr=0;/*visto q vai guardar pointer depois*//* No code, but keep PTR to avoid missing LOADs */ }
 
 assign: expr		1 { if(p->info==3) fprintf(outfp, pfDUP2); else fprintf(outfp, pfDUP); }
 convert_real: expr		1 {fprintf(outfp, pfI2D pfDUP2); }
@@ -241,7 +247,7 @@ expr: ATR(convert_int,lv)      left_real_right_int   { int lv_typ = RIGHT_CHILD(
 %! More eficient falta local
 %!expr:	ATR(expr,LOCAL)	same_type { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
 %!expr:	ATR(expr,ID)	same_type { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
-expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, LEFT_CHILD(p)->value.s);/*DOES SEG FAULT SINCE PTR DOESNT HAVE VALUE.S*/ }
+%!expr:	PTR(ID)		1 { fprintf(outfp, pfADDRV, LEFT_CHILD(p)->value.s);/*DOES SEG FAULT SINCE PTR DOESNT HAVE VALUE.S*/ }
 
 expr: INT               1   {fprintf(outfp,pfIMM,p->value.i);}
 expr: STR               1   {lbl++; fprintf(outfp, pfRODATA pfALIGN pfLABEL, mklbl(lbl)); outstr(p->value.s); fprintf(outfp, pfTEXT pfADDR, mklbl(lbl));}
@@ -373,18 +379,18 @@ void externs()
 }
 
 //FIXME CHECK VALUES
-int calculate_enter(char* fpar,int type){
-	int enter = dim(type);
-	for(int i=1;i<=fpar[0];i++){
-		//ptr
-		if(fpar[i] / 10==1 || fpar[i] ==1 || fpar[i]==2)
-			enter+=pfWORD;
-		//number
-		else if(fpar[i]==3)
-			enter+=pfWORD*2;
-	}
-  return enter;
-}
+// int calculate_enter(char* fpar,int type){
+// 	int enter = dim(type);
+// 	for(int i=1;i<=fpar[0];i++){
+// 		//ptr
+// 		if(fpar[i] / 10==1 || fpar[i] ==1 || fpar[i]==2)
+// 			enter+=pfWORD;
+// 		//number
+// 		else if(fpar[i]==3)
+// 			enter+=pfWORD*2;
+// 	}
+//   return enter;
+// }
 
 
 void function_burg(char *name, int enter, Node *stmt,Node *type)
