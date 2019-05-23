@@ -16,6 +16,7 @@ $(LANG): $(INICIAL).y $(LANG).l $(LANG).brg
 	flex -l $(LANG).l
 	pburg -T $(LANG).brg
 	$(LINK.c) -o $(LANG) $(ARCH) -I$(LIB) lex.yy.c y.tab.c yyselect.c -L$(LIB) -l$(UTIL)
+	make -C $(RUN)
 
 examples:: $(LANG)
 	make -C $(EXS)

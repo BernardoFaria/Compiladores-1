@@ -218,30 +218,36 @@ public integer entry (integer argc, string *argv, string *envp) {
 ==      printi(i)
 
 
-    prints("INT POINTER\n")
-    k:=&argc
-    printi(*k)
-    prints("=")
-    printi(argc)
-    println()
+==    prints("INT POINTER\n")
+==    k:=&argc
+==    printi(*k)
+==    prints("=")
+==    printi(argc)
+==    println()
 
 ==
-==  prints("String index\n")
-==    printi(a[1])
-==  println()
-==  a[1]:=75
-==  prints(a)
-==  a:="ola nova string\n"
-==  prints(a)
-==    prints("Local Args\n")
-==      printi(argc)
-==  println()
-==    prints(argv[2])
-==  println()
-==  prints(envp[0])
-==  println()
-==    printi(argv[1][0])
-==  println()
+  prints("String index\n")
+    printi(a[1])
+  println()
+  a[1]:=75
+  prints(a)
+  a:="ola nova string\n"
+  prints(a)
+    prints("Local Args\n")
+      printi(argc)
+  println()
+    prints(argv[2])
+  println()
+  prints(envp[0])
+  println()
+    ==printi(argv[1][0])
+  println()
+
+  prints("TESTE STCMP")
+  printi("ola"="ola")
+  printi("d">"a")
+  printi("d"<"a")
+  printi("olb"="ola")
 
 ==  test(2,3);
 ==  prints("\nRETURN FUNC\n")
