@@ -210,8 +210,7 @@ base:   WHILE(do,expr)   1 { brkcnt--; continuecnt--; fprintf(outfp, pfJZ, mklbl
 do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1;  fprintf(outfp, pfLABEL, mklbl(p->place + 1)); /*Label for continue to jump*/}
 begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl; continuelbl[++continuecnt] = ++lbl;   }
 
-base: END(expr,for)
-for: FOR(in,END(for_stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
+base: FOR(in,END(for_stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
 in:IN(for_begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pfJZ, mklbl(p->place));/*jumps to the end*/continuelbl[++continuecnt] =  ++lbl; }
 
 for_stmt:stmt                   1 {fprintf(outfp, pfLABEL, mklbl(continuelbl[continuecnt]));}
@@ -386,20 +385,6 @@ void externs()
             fprintf(outfp, pfEXTRN, extrns[i]);
 }
 
-//FIXME CHECK VALUES
-// int calculate_enter(char* fpar,int type){
-// 	int enter = dim(type);
-// 	for(int i=1;i<=fpar[0];i++){
-// 		//ptr
-// 		if(fpar[i] / 10==1 || fpar[i] ==1 || fpar[i]==2)
-// 			enter+=pfWORD;
-// 		//number
-// 		else if(fpar[i]==3)
-// 			enter+=pfWORD*2;
-// 	}
-//   return enter;
-// }
-
 
 void function_burg(char *name, int enter, Node *stmt,Node *type)
 {
@@ -458,7 +443,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
   //PROBLEM WITH FOWARD INITIALIZATIONS(since is only a pointer)
   // else if(!value || (type->attrib == INTEGER &&  value->value.i==0) || (type->attrib == NUMBER &&  value->value.r==0) ){
   //   fprintf(outfp, pfBSS); //although if has no value cant be const
-  //   fprintf(outfp,pfALIGN pfLABEL, name); //isto e bue manhoso......
+  //   fprintf(outfp,pfALIGN pfLABEL, name);
   //   return; //finish
   // } 
   else fprintf(outfp, pfDATA);
