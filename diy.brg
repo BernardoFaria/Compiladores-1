@@ -199,7 +199,7 @@ decls: DECLS(decls,param)
 
 base: NIL
 base: bloco
-base: expr {/*trash expressao*/}
+base: expr {int d=dim(p->info);printf("base expr Trash %d\n",d);if(d)fprintf(outfp, pfTRASH, d); /*trash expressao*/}
 base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
