@@ -66,25 +66,6 @@ static int only_string(Node *p){
   return LEFT_CHILD(p)->info%5 == 2 && RIGHT_CHILD(p)->info%5 == 2 ? 1 : MAX_COST; 
 }
 
-// static int only_string_left(Node *p){
-//   printf("only lef str value%d\n",LEFT_CHILD(p)->attrib);
-
-//   return LEFT_CHILD(p)->info == 2 ? 1 : MAX_COST; 
-// }
-// static int not_string_left(Node *p){
-//   printf("NOT lef str value%d\n",LEFT_CHILD(p)->info);
-//   return LEFT_CHILD(p)->info != 2 ? 1 : MAX_COST; 
-// }
-
-// static int only_string1(Node *p){
-//   return p->info == 2 ? 1 : MAX_COST; 
-// }
-
-// static int not_string1(Node *p){
-//   return p->info != 2 ? 1 : MAX_COST; 
-// }
-
-
 
 static int only_integer_left(Node *p){
   return LEFT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
