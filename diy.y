@@ -317,8 +317,8 @@ int intonly(Node *arg, int novar) {
 	if (arg->info % 5 != 1)
 		yyerror("only integers can be used");
 		//verify the problem with argument being constant
-	// if (arg->info % 10 > 5)
-	// 	yyerror("argument is constant");
+	if (arg->info % 10 > 6)
+		yyerror("argument is constant");
 	return 1;
 }
 

@@ -47,13 +47,15 @@ static char *mkfunc(char *s) {
 }
 
 static int only_integer(Node *p){
-  printf("lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
-  return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+    int l=LEFT_CHILD(p)->info %5;
+  int r = RIGHT_CHILD(p)->info %5 ;
+  printf("lef %d rig %d \n",l,r);
+  return r== 1 && l == 1 ? 1 : MAX_COST; 
 }
 
 static int only_integer_or_string(Node *p){
-  int l=LEFT_CHILD(p)->info;
-  int r = RIGHT_CHILD(p)->info ;
+  int l=LEFT_CHILD(p)->info %5;
+  int r = RIGHT_CHILD(p)->info %5 ;
   return  (l== 1||l==2) && (r== 1||r==2) ? 1 : MAX_COST; 
 }
 
@@ -95,12 +97,16 @@ static int only_real1(Node *p){
 }
 
 static int has_real(Node *p){
-  return LEFT_CHILD(p)->info == 3 || RIGHT_CHILD(p)->info == 3 ? 1 : MAX_COST; 
+    int l=LEFT_CHILD(p)->info %5;
+  int r = RIGHT_CHILD(p)->info %5 ;
+  return l == 3 || r == 3 ? 1 : MAX_COST; 
 }
 
 static int same_type(Node *p){
-  printf("SAME lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
-  return LEFT_CHILD(p)->info == RIGHT_CHILD(p)->info ? 1 : MAX_COST; 
+      int l=LEFT_CHILD(p)->info %5;
+  int r = RIGHT_CHILD(p)->info %5 ;
+  printf("SAME lef %d rig %d \n",l,r);
+  return l == r ? 1 : MAX_COST; 
 }
 
 static int atr_check_no_changes(Node *p){
@@ -119,15 +125,15 @@ static int atr_check_no_changes(Node *p){
 // }
 
 static int left_real_right_int(Node *p){
-  return LEFT_CHILD(p)->info == 3 && RIGHT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+  return LEFT_CHILD(p)->info%5 == 3 && RIGHT_CHILD(p)->info%5 == 1 ? 1 : MAX_COST; 
 }
 static int left_int_right_real(Node *p){
-  return LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info == 3 ? 1 : MAX_COST; 
+  return LEFT_CHILD(p)->info%5 == 1 && RIGHT_CHILD(p)->info%5 == 3 ? 1 : MAX_COST; 
 }
 
 static void convert_child_real(Node*p){
-  if(LEFT_CHILD(p)->info == 1) fprintf(outfp,pfDPOP pfI2D pfDPUSH); 
-  if(RIGHT_CHILD(p)->info == 1) fprintf(outfp,pfI2D);
+  if(LEFT_CHILD(p)->info%5 == 1) fprintf(outfp,pfDPOP pfI2D pfDPUSH); 
+  if(RIGHT_CHILD(p)->info%5 == 1) fprintf(outfp,pfI2D);
 }
 
 int dim(int type);
@@ -193,7 +199,7 @@ decls: DECLS(decls,param)
 
 base: NIL
 base: bloco
-base: expr
+base: expr {/*trash expressao*/}
 base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
