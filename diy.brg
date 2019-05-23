@@ -119,13 +119,6 @@ static int atr_check_no_changes(Node *p){
   return MAX_COST; 
 }
 
-// static int atr_string(Node *p){
-//   printf("ATR lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
-//   if(LEFT_CHILD(p)->info == 11 && RIGHT_CHILD(p)->info==2) return 1;
-//     return MAX_COST; 
-//   // return LEFT_CHILD(p)->info == 2 || RIGHT_CHILD(p)->info==2 ? 1 : MAX_COST; 
-// }
-
 static int left_real_right_int(Node *p){
   return LEFT_CHILD(p)->info%5 == 3 && RIGHT_CHILD(p)->info%5 == 1 ? 1 : MAX_COST; 
 }
@@ -201,7 +194,7 @@ decls: DECLS(decls,param)
 
 base: NIL
 base: bloco
-base: expr {int d=dim(p->info);printf("base expr Trash %d\n",d);if(d)fprintf(outfp, pfTRASH, d); /*trash expressao*/}
+base: expr {int d=dim(p->info);if(d)fprintf(outfp, pfTRASH, d); /*trash expressao*/}
 base: ALLOC(alloc,lv) 1 {fprintf(outfp, pfSTORE);}
 alloc:	expr		1 { fprintf(outfp, pfIMM pfMUL pfALLOC pfSP, pfWORD); }
 
@@ -216,21 +209,6 @@ in:IN(for_begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pf
 for_stmt:stmt                   1 {fprintf(outfp, pfLABEL, mklbl(continuelbl[continuecnt]));}
 for_begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl;   }
 
-
-%!END(atr,for)
-%!atr:END(stmt,ATR(expr,lv))
-%!exp:LE(PTR(lv),step)
-%!begin_for: START
-
-
-
-%! pre/post in/de-crement Completamente diferente(no code tem apenas 1 arg) FIXME
-%!expr:   INC(CTE, lval)  1 { fprintf(outfp, pfDUP pfINCR pfLOAD, LEFT_CHILD(p)->value.i); }
-%!expr:   DEC(CTE, lval)  1 { fprintf(outfp, pfDUP pfDECR pfLOAD, LEFT_CHILD(p)->value.i); }
-%!expr:   INC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, RIGHT_CHILD(p)->value.i); }
-%!expr:   DEC(lval, CTE)  1 { fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, RIGHT_CHILD(p)->value.i); }
-
-
 expr: INCR(lv)                 1   {fprintf(outfp, pfDUP pfINCR pfLOAD, 1);}
 expr: DECR(lv)                 1   {fprintf(outfp, pfDUP pfDECR pfLOAD, 1);}
 expr: POSINC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, 1); }
@@ -244,7 +222,7 @@ assign: expr		1 { if(p->info==3) fprintf(outfp, pfDUP2); else fprintf(outfp, pfD
 convert_real: expr		1 {fprintf(outfp, pfI2D pfDUP2); }
 convert_int: expr		1 {fprintf(outfp, pfD2I pfDUP); }
 
-%! string:=0 e string:= pointer nao testado
+%! string:=0 e string:= pointer
 expr: ATR(assign,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
                                         printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
 expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
@@ -315,8 +293,7 @@ and:    expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJZ pfTRASH, mkl
 expr:   OR(or,expr) 1 { fprintf(outfp, pfLABEL pfIMM pfNE, mklbl(LEFT_CHILD(p)->place), 0); }
 or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(p->place), pfWORD); }
 
-%! isto faz em comment(tb comment in B)
-%!stmt: CALL(LOAD(ADDR),ARG(STRING,END))    doasm { fprintf(outfp, "%s\n", LEFT_CHILD(RIGHT_CHILD(p))- >value.s); }
+
 expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH, mkfunc(LEFT_CHILD(p)->value.s), (int)((RIGHT_CHILD(p)->place))); 
                             int typ =IDfind(LEFT_CHILD(p)->value.s, NULL) % 20; if(typ/10==1||typ==1||typ==2) fprintf(outfp,pfPUSH); else if(typ==3) fprintf(outfp,pfDPUSH);
                             printf("FUNC CALL: %s TYPE: %d ARGS TRASH:%d\n",LEFT_CHILD(p)->value.s,typ,(int)((RIGHT_CHILD(p)->place)));}
@@ -339,18 +316,10 @@ stmt: brk
 %! left values
 lvec:	lv		1 { fprintf(outfp, pfLOAD); /*LOAD the rodata addr for the array, it cAN ONLY BE INT I ASSUME*/}
 lv: INDEX_S(lvec,expr) 1 { fprintf(outfp, pfADD); ptr_loadchr=1; /*forward a char, 1 byte*/}
-
 lv: INDEX(lvec,expr) 1 { fprintf(outfp, pfIMM pfMUL pfADD, pfWORD); }
 
-%! falta os diversis type
 lv: LOCAL  1 {fprintf(outfp, pfLOCAL, p->value.i); }
 lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
-
-
-
-%! Sera q nos usamos load? * lv
-
-
 
 %%
 #include "y.tab.h"
