@@ -56,12 +56,14 @@ static int only_integer(Node *p){
 static int only_integer_or_string(Node *p){
   int l=LEFT_CHILD(p)->info %5;
   int r = RIGHT_CHILD(p)->info %5 ;
-  return  (l== 1||l==2) && (r== 1||r==2) ? 1 : MAX_COST; 
+    printf("only integer or string l%d r%d\n",l,r);
+  if(l==2 && r==2) return MAX_COST;
+  return  (l== 1||l==2) && (r== 1||r==2)? 1 : MAX_COST; 
 }
 
 
 static int only_string(Node *p){
-  return LEFT_CHILD(p)->info == 2 && RIGHT_CHILD(p)->info == 2 ? 1 : MAX_COST; 
+  return LEFT_CHILD(p)->info%5 == 2 && RIGHT_CHILD(p)->info%5 == 2 ? 1 : MAX_COST; 
 }
 
 // static int only_string_left(Node *p){
