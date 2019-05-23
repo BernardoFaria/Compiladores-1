@@ -126,9 +126,12 @@ decls	:                       { $$ = nilNode(NIL); }
 
 param	: tipo ID               { $$ = binNode(PARAM, $1, strNode(ID, $2));
 																	//if func arg, else local arg
-                                  if (IDlevel() == 1) IDnew($1->value.i, $2, local_value+=dim($1->value.i)); 
+                                  if (IDlevel() == 1) {
+																		IDnew($1->value.i, $2, local_value);
+																		printf("Param local value %d \n",local_value);
+																		local_value+=dim($1->value.i);
+																	} 
 																	else IDnew($1->value.i, $2, func_pos-=dim($1->value.i)); 
-																	printf("Param local value %d \n",local_value);
                                   if (IDlevel() == 1) fpar[++fpar[0]] = $1->value.i;
                                 }
 	;
@@ -259,7 +262,7 @@ void enter(int pub, int typ, char *name) {
 	IDpush();
 	
 	func_pos=-dim(typ); /*define func_pos com valor de retorno,ha de ser um int pointeiro*/
-	local_value= dim(1); /*Reset local for func args,with space for the return(always a pointer*/
+	local_value= 2*pfWORD; /*Reset local for func args,with space for the return(always a pointer*/
 	///fpar[++fpar[0]] = typ;
 	if (typ != 4) IDnew(typ, name, func_pos);  //variavel de retorno
 }
