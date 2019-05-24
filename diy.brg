@@ -6,6 +6,7 @@
 #include "node.h"
 #include "tabid.h"
 #include "postfix.h"
+#include "y.tab.h"
 
 #define TRACE
 static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost);
@@ -49,14 +50,12 @@ static char *mkfunc(char *s) {
 static int only_integer(Node *p){
     int l=LEFT_CHILD(p)->info %5;
   int r = RIGHT_CHILD(p)->info %5 ;
-  printf("lef %d rig %d \n",l,r);
   return r== 1 && l == 1 ? 1 : MAX_COST; 
 }
 
 static int only_integer_or_string(Node *p){
   int l=LEFT_CHILD(p)->info %5;
   int r = RIGHT_CHILD(p)->info %5 ;
-    printf("only integer or string l%d r%d\n",l,r);
   if(l==2 && r==2) return MAX_COST;
   return  (l== 1||l==2) && (r== 1||r==2)? 1 : MAX_COST; 
 }
@@ -69,6 +68,53 @@ static int only_string(Node *p){
 
 static int only_integer_left(Node *p){
   return LEFT_CHILD(p)->info == 1 ? 1 : MAX_COST; 
+}
+
+static int optim_incr_right(Node *p){
+  Node *ptr_lv = LEFT_CHILD(RIGHT_CHILD(LEFT_CHILD(p)));
+  Node *lv = RIGHT_CHILD(p);
+  
+  if(lv->attrib == ptr_lv->attrib) {/*If they have same attr*/
+    switch (lv->attrib)      /*and same value Node, they are the same*/
+    {
+    case LOCAL:{
+      if(lv->value.i==ptr_lv->value.i){
+        return 1;
+      }
+      break;
+    }
+    case ID:{
+      if(strcmp(lv->value.s,ptr_lv->value.s)==0){
+        return 1;
+      }
+      break;
+    }
+    }
+  }
+  return MAX_COST; 
+}
+static int optim_incr_left(Node *p){
+  Node *ptr_lv = LEFT_CHILD(LEFT_CHILD(LEFT_CHILD(p)));
+  Node *lv = RIGHT_CHILD(p);
+  
+  if(lv->attrib == ptr_lv->attrib) {/*If they have same attr*/
+    switch (lv->attrib)      /*and same value Node, they are the same*/
+    {
+    case LOCAL:{
+      if(lv->value.i==ptr_lv->value.i){
+        return 1;
+      }
+      break;
+    }
+    case ID:{
+      if(strcmp(lv->value.s,ptr_lv->value.s)==0){
+        return 1;
+      }
+      break;
+    }
+    }
+  }
+  return MAX_COST; 
 }
 
 static int only_integer1(Node *p){
@@ -88,12 +134,10 @@ static int has_real(Node *p){
 static int same_type(Node *p){
       int l=LEFT_CHILD(p)->info %5;
   int r = RIGHT_CHILD(p)->info %5 ;
-  printf("SAME lef %d rig %d \n",l,r);
   return l == r ? 1 : MAX_COST; 
 }
 
 static int atr_check_no_changes(Node *p){
-  printf("SAME lef %d rig %d \n",LEFT_CHILD(p)->info, RIGHT_CHILD(p)->info);
   if(LEFT_CHILD(p)->info == RIGHT_CHILD(p)->info) return 1;
   if(LEFT_CHILD(p)->info == 1 && RIGHT_CHILD(p)->info==2) return 1; //string:=0 manhoso
   if(LEFT_CHILD(p)->info == 11 && RIGHT_CHILD(p)->info==2) return 1; //string:=int*
@@ -164,7 +208,7 @@ params: param               1   {}
 args:   ARGS(arg,args)       { p->place =  ((LEFT_CHILD(p)->place) + (RIGHT_CHILD(p)->place)); }
 args:   NIL       { p->place = 0; }
 %! nao serve de nada de momento
-arg:    expr        { p->place = dim(p->info); printf("arg info value %d\n",(int)p->place);}
+arg:    expr        { p->place = dim(p->info);}
 
 
 param: PARAM(tipo,ID)   
@@ -198,11 +242,9 @@ expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1)
 
 
 %!Otimizacao
-%!expr: ATR(ADD(PTR(lv),INT),lv)
-%!expr: ATR(ADD(INT,PTR(lv)),lv)
-%!
-%!expr: ATR(SUB(PTR(lv),INT),lv)
-%!expr: ATR(SUB(INT,PTR(lv)),lv)
+expr: ATR(ADD(PTR(lv),INT),lv) optim_incr_left {fprintf(outfp,pfINCR pfLOAD,RIGHT_CHILD(LEFT_CHILD(p))->value.i);/*VAI ter 2 ADDRS*/}
+expr: ATR(ADD(INT,PTR(lv)),lv) optim_incr_right {fprintf(outfp,pfINCR pfLOAD,LEFT_CHILD(LEFT_CHILD(p))->value.i);/*VAI ter 2 ADDRS*/}
+expr: ATR(SUB(PTR(lv),INT),lv) optim_incr_left {fprintf(outfp,pfDECR pfLOAD,RIGHT_CHILD(LEFT_CHILD(p))->value.i);/*VAI ter 2 ADDRS*/}
 
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr|| LEFT_CHILD(LEFT_CHILD(p))->info==2) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
@@ -213,12 +255,9 @@ convert_real: expr		1 {fprintf(outfp, pfI2D pfDUP2); }
 convert_int: expr		1 {fprintf(outfp, pfD2I pfDUP); }
 
 %! string:=0 e string:= pointer
-expr: ATR(assign,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
-                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
-expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
-                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
-expr: ATR(convert_int,lv)      left_real_right_int   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);
-                                        printf("ASSIGN loadchar:%d typ%d\n",ptr_loadchr,lv_typ);}
+expr: ATR(assign,lv)      atr_check_no_changes   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);}
+expr: ATR(convert_real,lv)      left_int_right_real   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);}
+expr: ATR(convert_int,lv)      left_real_right_int   { int lv_typ = RIGHT_CHILD(p)->info; if(ptr_loadchr) {fprintf(outfp, pfSTCHR); ptr_loadchr=0;} else if(lv_typ==3) fprintf(outfp, pfSTORE2); else fprintf(outfp, pfSTORE);}
 %! More eficient falta local
 %!expr:	ATR(expr,LOCAL)	same_type { fprintf(outfp, pfLOCA, RIGHT_CHILD(p)->value.i); }
 %!expr:	ATR(expr,ID)	same_type { fprintf(outfp, pfADDRA, RIGHT_CHILD(p)->value.s); }
@@ -285,9 +324,7 @@ or: expr        1 { p->place = ++lbl; fprintf(outfp, pfDUP pfJNZ pfTRASH, mklbl(
 
 
 expr:   CALL(ID,args)   1 { fprintf(outfp, pfCALL pfTRASH, mkfunc(LEFT_CHILD(p)->value.s), (int)((RIGHT_CHILD(p)->place))); 
-                            int typ =IDfind(LEFT_CHILD(p)->value.s, NULL) % 20; if(typ/10==1||typ==1||typ==2) fprintf(outfp,pfPUSH); else if(typ==3) fprintf(outfp,pfDPUSH);
-                            printf("FUNC CALL: %s TYPE: %d ARGS TRASH:%d\n",LEFT_CHILD(p)->value.s,typ,(int)((RIGHT_CHILD(p)->place)));}
-
+                            int typ =IDfind(LEFT_CHILD(p)->value.s, NULL) % 20; if(typ/10==1||typ==1||typ==2) fprintf(outfp,pfPUSH); else if(typ==3) fprintf(outfp,pfDPUSH);}
 
 %! if-else
 base:   ELSE(if,stmt)   1 { fprintf(outfp, pfLABEL, mklbl(LEFT_CHILD(p)->place)); }
@@ -312,7 +349,6 @@ lv: LOCAL  1 {fprintf(outfp, pfLOCAL, p->value.i); }
 lv: ID      1   {fprintf(outfp, pfADDR, p->value.s);}
 
 %%
-#include "y.tab.h"
 extern void yyerror(const char*);
 extern char **yynames;
 extern int trace;
@@ -326,7 +362,7 @@ static void yytrace(NODEPTR_TYPE p, int eruleno, int cost, int bestcost)
     if (cost >= MAX_COST && bestcost >= MAX_COST) {
       extern char **yynames;
       fprintf(stderr, "0x%lx:%s NO MATCH %s with cost %d vs. %d\n", (long)p, tname, yystring[eruleno],   cost, bestcost);
-      printNode(p, 0, yynames);
+      if(trace) printNode(p, 0, yynames);
     }
 }
 #endif

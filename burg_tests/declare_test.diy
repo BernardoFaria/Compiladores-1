@@ -1,7 +1,3 @@
-==public integer pcnt;
-== public sem value e logo extern imediatamente
-== integer pcnt:=2;
-
 
 
 integer cnt2;
@@ -9,9 +5,11 @@ public integer cnt3 :=3;
 integer cnt := 1;
 public integer zero := 0;
 
+number n;
 public number rzero := 0.0;
 public number r := 0.1;
 string a:="olá pessoal!\n";
+string b
 
 
 
@@ -21,211 +19,222 @@ public void printd(number d)
 public void println()
 
 
-== public void test(integer a, integer b){
-==   prints("func args test\n")
-==   printi(a)
-==   println()
-== 
-==   a:=51;
-== 
-==   printi(a)
-==   println()
-== 
-==   printi(b)
-==   println()
-== };
+ public void test(integer a, integer b){
+   prints("func args test\n")
+   printi(a)
+   println()
+ 
+   a:=51;
+ 
+   printi(a)
+   println()
+ 
+   printi(b)
+   println()
+ };
 
-==public integer test2(){
-==  integer i;
-==  test2:=42
-==};
+public integer test2(){
+  integer i;
+  test2:=42
+};
 
 public integer entry (integer argc, string *argv, string *envp) {
   integer local
   integer i
   integer j
   integer* k
+
+
+  ==prints(b)
+  b:=a
+
+  ==prints(b)
+
+  printi(cnt2)
+  println()
+  cnt2:=42
+printi(cnt2)
+
   
-==  printi(local)
-==  println()
-==  local:=10-local
-==  printi(local)
-==  println() 
+  printi(local)
+  println()
+  local:=10-local
+  printi(local)
+  println() 
   
-  ==prints("FOR\n")
-==  prints("FOR\n")
-==  i:=0
-==  for i in 0 upto 10 step 1 do{
-==    printi(i)
-==    prints("->")
-==    continue;
-==  }
-==  i:=0
-==  j:=0
-==  prints("NEW FOR")
-==
-==  for i in 0 upto 10 step 1 do{
-==    printi(i)
-==    if i =0 then {
-==      for j in 0 upto 10 step 1 do{
-==        prints("continue")
-==        if j = 2 then continue 2;
-==      }
-==    }
-==
-==    if i =1 then{
-==      for j in 0 upto 10 step 1 do{
-==        prints("break")
-==        if j = 2 then break 2;
-==
-==      }
-==    }
-==
-==    printi(i)
-==    prints("->")
-==  }
+  prints("FOR\n")
+  prints("FOR\n")
+  i:=0
+  for i in 0 upto 10 step 1 do{
+    printi(i)
+    prints("->")
+    continue;
+  }
+  i:=0
+  j:=0
+  prints("NEW FOR")
 
-==  prints("DO WHILE\n")
-==  do{
-==    printi(local)
-==    prints("->")
-==    local:=local-1
-==  } while local > 0
-==
-==
-==  i:=0
-==  do{
-==
-==    if i >= 2 then {
-==      prints("fim")
-==      break;
-==    }
-==
-==    do{
-==      i:=i+1
-==      if i < 2 then {
-==        prints("continue1\n")
-==        continue;
-==      }
-==      prints("deve imprimir apenas 1 vez com 2\n")
-==      printi(i)
-==      do {
-==        prints("break 2\n")
-==        break 2;
-==      } while 1
-==      prints("nem isto")
-==    } while 1
-==
-==    do{
-==      do{
-==        prints("continue 3\n")
-==        continue 3;
-==      } while 1
-==    } while 1
-==
-==    prints("nao imprimir")
-==
-==  } while 1
-==
-==
-==  println()
-==  prints(a)
-==  prints("in line argument string!\n")
-==  
-==  prints("INteger Numbers\n")
-==
-==  printi(cnt)
-==  println()
-==  printi(cnt3+cnt)
-==  println()
-==  printi(zero)
-==  println()
-==     printi(cnt2)
-==    println()
-==    cnt2:=42
-==    printi(cnt2)
-==    println()
-==
-==    
+  for i in 0 upto 10 step 1 do{
+    printi(i)
+    if i =0 then {
+      for j in 0 upto 10 step 1 do{
+        prints("continue")
+        if j = 2 then continue 2;
+      }
+    }
 
-==      if argc < 2 then{
-==        prints("argc less than 2\n")
-==      } 
-==  else prints("argc BIGGER than 2\n")
-==
-==    printi(argc)
-==    println()
-==    argc:=42
-==    printi(argc)
-==    println()
-==
-==  printi(2019)
-==    println()
-==  printi(2019/10)
-==    println()
-==  printi(2019-50)
-==    println()
-==
-==
-==  prints("DOUBLE PRINT")
-==  println()
-==  printd(3.14+1)
-==    println()
-==  printd(2+r)
-==  println()
-==  printd(rzero)
-==  println()
-==
-==
-==
-==  prints("DOUBLE COMPARATIONS")
-==  println()
-==    printi(3=3.1)
-==  println()
-==    printi(0.1<0.2)
-==  println()
-==    printi(3.12>5)
-==  println()
-==    printi(cnt3)
-==  println()
-==    printi(cnt3<=1.1)
-==  println()
-==    printi(i<1)
-==  println()
-==    printi(cnt3<>r)
-==  println()
-==
-==
+    if i =1 then{
+      for j in 0 upto 10 step 1 do{
+        prints("break")
+        if j = 2 then break 2;
 
-==    prints("LOGIC\nNOT\n")
-==    printi(~10)
-==    prints("\nAND\n")
-==    printi(10&20)
-==    println()
-==    printi(0&20)
-==    prints("\nOR\n")
-==    printi(0|20)
-==    println()
-==    printi(0|0)
+      }
+    }
 
-==      i:=0
-==      prints("INC DECR\n")
-==      printi(i++)
-==      printi(i)
-==      printi(++i)
-==      printi(--i)
-==      printi(i--)
-==      printi(i)
+    printi(i)
+    prints("->")
+  }
+
+  prints("DO WHILE\n")
+  do{
+    printi(local)
+    prints("->")
+    local:=local-1
+  } while local > 0
 
 
-==    prints("INT POINTER\n")
-==    k:=&argc
-==    printi(*k)
-==    prints("=")
-==    printi(argc)
-==    println()
+  i:=0
+  do{
 
-==
+    if i >= 2 then {
+      prints("fim")
+      break;
+    }
+
+    do{
+      i:=i+1
+      if i < 2 then {
+        prints("continue1\n")
+        continue;
+      }
+      prints("deve imprimir apenas 1 vez com 2\n")
+      printi(i)
+      do {
+        prints("break 2\n")
+        break 2;
+      } while 1
+      prints("nem isto")
+    } while 1
+
+    do{
+      do{
+        prints("continue 3\n")
+        continue 3;
+      } while 1
+    } while 1
+
+    prints("nao imprimir")
+
+  } while 1
+
+
+  println()
+  prints(a)
+  prints("in line argument string!\n")
+  
+  prints("INteger Numbers\n")
+
+  printi(cnt)
+  println()
+  printi(cnt3+cnt)
+  println()
+  printi(zero)
+  println()
+     printi(cnt2)
+    println()
+    cnt2:=42
+    printi(cnt2)
+    println()
+
+    
+
+      if argc < 2 then{
+        prints("argc less than 2\n")
+      } 
+  else prints("argc BIGGER than 2\n")
+
+    printi(argc)
+    println()
+    argc:=42
+    printi(argc)
+    println()
+
+  printi(2019)
+    println()
+  printi(2019/10)
+    println()
+  printi(2019-50)
+    println()
+
+
+  prints("DOUBLE PRINT")
+  println()
+  printd(3.14+1)
+    println()
+  printd(2+r)
+  println()
+  printd(rzero)
+  println()
+
+
+
+  prints("DOUBLE COMPARATIONS")
+  println()
+    printi(3=3.1)
+  println()
+    printi(0.1<0.2)
+  println()
+    printi(3.12>5)
+  println()
+    printi(cnt3)
+  println()
+    printi(cnt3<=1.1)
+  println()
+    printi(i<1)
+  println()
+    printi(cnt3<>r)
+  println()
+
+
+
+    prints("LOGIC\nNOT\n")
+    printi(~10)
+    prints("\nAND\n")
+    printi(10&20)
+    println()
+    printi(0&20)
+    prints("\nOR\n")
+    printi(0|20)
+    println()
+    printi(0|0)
+
+      i:=0
+      prints("INC DECR\n")
+      printi(i++)
+      printi(i)
+      printi(++i)
+      printi(--i)
+      printi(i--)
+      printi(i)
+
+    prints("INT POINTER\n")
+    k:=&argc
+    printi(*k)
+    prints("=")
+    printi(argc)
+    println()
+
+
   prints("String index\n")
     printi(a[1])
   println()
@@ -240,7 +249,7 @@ public integer entry (integer argc, string *argv, string *envp) {
   println()
   prints(envp[0])
   println()
-    ==printi(argv[1][0])
+==    printi(argv[1][0])
   println()
 
   prints("TESTE STCMP")
@@ -248,11 +257,68 @@ public integer entry (integer argc, string *argv, string *envp) {
   printi("d">"a")
   printi("d"<"a")
   printi("olb"="ola")
+  cnt:=cnt+42
+  test(2,3);
+  prints("\nRETURN FUNC\n")
+  printi(test2())
+  local:=1
 
-==  test(2,3);
-==  prints("\nRETURN FUNC\n")
-==  printi(test2())
-==  local:=1
+
+  printi(cnt2)
+  println()
+  cnt2:=3
+  printi(cnt2)
+println()
+println()
+
+  printi(zero)
+  println()
+  zero:=42
+  printi(zero)
+println()
+println()
+
+  printi(local)
+  println()
+  local:=42
+  printi(local)
+println()
+println()
+
+  printd(n)
+  println()
+  n:=0.5
+  printd(n)
+  println()
+
+  
+  printi(cnt2)
+  println()
+  cnt2 := cnt2 +42
+    printi(cnt2)
+  println()
+    printi(cnt3)
+  println()
+
+    printi(  cnt3 := -10 + cnt3)
+  println()
+      printi(  cnt3 := cnt3-10)
+  println()
+      printi(  cnt3 := 10-cnt3)
+  println()
+
+    printi(local)
+  println()
+  local:= 2+local 
+    printi(local)
+  println()  
+
+  prints(a)
+  b[1]:=99
+  prints(b)
+
+
+
   entry := 0
 };
 
