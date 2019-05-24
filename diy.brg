@@ -184,7 +184,8 @@ base:   WHILE(do,expr)   1 { brkcnt--; continuecnt--; fprintf(outfp, pfJZ, mklbl
 do: DO(begin,stmt) 1 { p->place = LEFT_CHILD(p)->place + 1;  fprintf(outfp, pfLABEL, mklbl(p->place + 1)); /*Label for continue to jump*/}
 begin:  START        1 { p->place = ++lbl; fprintf(outfp, pfLABEL, mklbl(lbl)); brklbl[++brkcnt] = ++lbl; continuelbl[++continuecnt] = ++lbl;   }
 
-base: FOR(in,END(for_stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
+base: END(expr,for)
+for: FOR(in,END(for_stmt,expr)) 1 {brkcnt--; continuecnt--; fprintf(outfp, pfJMP pfLABEL, mklbl(LEFT_CHILD(LEFT_CHILD(p))->place), mklbl(LEFT_CHILD(p)->place));}
 in:IN(for_begin,expr)  1 {p->place = LEFT_CHILD(p)->place + 1; fprintf(outfp, pfJZ, mklbl(p->place));/*jumps to the end*/continuelbl[++continuecnt] =  ++lbl; }
 
 for_stmt:stmt                   1 {fprintf(outfp, pfLABEL, mklbl(continuelbl[continuecnt]));}
@@ -194,6 +195,14 @@ expr: INCR(lv)                 1   {fprintf(outfp, pfDUP pfINCR pfLOAD, 1);}
 expr: DECR(lv)                 1   {fprintf(outfp, pfDUP pfDECR pfLOAD, 1);}
 expr: POSINC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfINCR, 1); }
 expr: POSDEC(lv)              1   {fprintf(outfp, pfDUP pfLOAD pfSWAP pfDECR, 1);}
+
+
+%!Otimizacao
+%!expr: ATR(ADD(PTR(lv),INT),lv)
+%!expr: ATR(ADD(INT,PTR(lv)),lv)
+%!
+%!expr: ATR(SUB(PTR(lv),INT),lv)
+%!expr: ATR(SUB(INT,PTR(lv)),lv)
 
 expr: PTR(lv)           1   {int type = p->info % 10; if(ptr_loadchr) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
 expr: PTR(PTR(lv))      1   {int type = p->info % 10;fprintf(outfp,pfLOAD); if(ptr_loadchr|| LEFT_CHILD(LEFT_CHILD(p))->info==2) {fprintf(outfp,pfLDCHR);ptr_loadchr=0;} else if(type==1||type==2) fprintf(outfp,pfLOAD); if(type==3) fprintf(outfp,pfLOAD2);}
@@ -391,11 +400,11 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
 
   if(cnst) fprintf(outfp, pfRODATA);
   //PROBLEM WITH FOWARD INITIALIZATIONS(since is only a pointer)
-  // else if(!value || (type->attrib == INTEGER &&  value->value.i==0) || (type->attrib == NUMBER &&  value->value.r==0) ){
-  //   fprintf(outfp, pfBSS); //although if has no value cant be const
-  //   fprintf(outfp,pfALIGN pfLABEL, name);
-  //   return; //finish
-  // } 
+  else if(!value || (type->attrib == INTEGER &&  value->value.i==0) || (type->attrib == NUMBER &&  value->value.r==0) ){
+    fprintf(outfp, pfBSS); //although if has no value cant be const
+    fprintf(outfp,pfALIGN pfLABEL pfBYTE, name,type->attrib==3?2*pfWORD:pfWORD);
+    return; //finish
+  } 
   else fprintf(outfp, pfDATA);
 
 
@@ -438,32 +447,7 @@ void declare_burg(int pub, int cnst, Node *type, char *name, Node *value)
       }
     }
     
-  }else{
-      //not initiated,zeroing FIXME
-      // fprintf(outfp, pfBYTE, pfWORD * siz);
-    switch (type->attrib)
-    {
-      case INTEGER:{
-         fprintf(outfp,pfINTEGER, 0);
-        break;
-      }
-      case STRING:{
-      
-        char *l = mklbl(++lbl);
-        fprintf(outfp, pfDATA pfID, l); // perceber isto(penso q seja associar um endereco a rodata)
-        fprintf(outfp, pfDATA pfALIGN pfLABEL, l);
-
-        outstr("\0");
-        break;
-      }
-
-      case NUMBER:{
-        fprintf(outfp,pfDOUBLE, 0.0);
-        break;
-      }
-      }
   }
-
 
 }
 
